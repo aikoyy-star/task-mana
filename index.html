@@ -750,16 +750,21 @@ function renderGantt(){
   const root=document.getElementById('gantt-root');
   if(!tasks.length){root.innerHTML='<div class="empty"><div class="empty-icon">▦</div>タスクがありません</div>';return;}
   const td=todayStr(),tdMs=new Date(td).getTime();
-  // ⑧ 日付範囲と列幅計算
-  const minD=new Date(tdMs-86400000*2);
-  const maxD=new Date(tdMs+86400000*35);
+
+  // 全タスクの開始・終了日を含む範囲＋前後に余白
+  const allDates=tasks.flatMap(t=>[new Date(t.start),new Date(t.end)]);
+  const minD=new Date(Math.min(...allDates.map(d=>d.getTime()),tdMs-86400000*7));
+  const maxD=new Date(Math.max(...allDates.map(d=>d.getTime()),tdMs+86400000*30));
+  // 週境界に合わせる
   while(minD.getDay()!==0)minD.setDate(minD.getDate()-1);
   while(maxD.getDay()!==6)maxD.setDate(maxD.getDate()+1);
   const totalDays=Math.round((maxD-minD)/86400000)+1;
+
+  // 1日の幅：画面に35日分が収まるサイズを基準に固定
   const paneW=document.getElementById('pane-gantt').clientWidth;
   const fixedCols=22+colName+colMember+40;
-  const availW=Math.max(paneW-fixedCols,totalDays*16);
-  const DW=Math.max(16,Math.floor(availW/totalDays));
+  const availW=paneW-fixedCols;
+  const DW=Math.max(16,Math.floor(availW/35)); // 常に35日分の幅を1画面に
   const BAW=totalDays*DW;
   const todayIdx=Math.round((new Date(td)-minD)/86400000);
   const todayLeft=todayIdx*DW+DW/2;
@@ -871,6 +876,12 @@ function renderGantt(){
     <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:16px;background:#888;border-radius:3px;opacity:.7"></span>🟢 軽い</span>
   </div>`;
   initGanttDrag();initResizeHandles();
+  // 初期表示：「今日」が左から1/4の位置に来るようスクロール
+  const scrollEl=root.querySelector('.gantt-scroll');
+  if(scrollEl){
+    const scrollTo=Math.max(0,todayLeft-(availW*0.25));
+    scrollEl.scrollLeft=scrollTo;
+  }
 }
 
 function isTopDone(t){
