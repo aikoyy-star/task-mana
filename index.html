@@ -209,6 +209,25 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .pw-btn:hover{background:#333}
 .pw-error{font-size:12px;color:var(--red);min-height:16px}
 .pw-note{font-size:11px;color:var(--text3);text-align:center;line-height:1.6}
+/* メモタブ */
+.memo-view{flex:1;overflow-y:auto;padding:1rem 1.5rem;background:var(--bg);display:flex;flex-direction:column;gap:0}
+.memo-add-area{background:var(--surface);border-radius:var(--radius-lg);border:.5px solid var(--border);padding:1rem;margin-bottom:1rem}
+.memo-add-area textarea{width:100%;padding:8px 10px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;resize:vertical;min-height:72px;transition:border-color .15s}
+.memo-add-area textarea:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.memo-add-footer{display:flex;justify-content:flex-end;margin-top:8px}
+.memo-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;display:flex;align-items:flex-start;gap:8px;animation:fadeIn .18s ease;transition:opacity .2s}
+.memo-card.done-memo{opacity:.4}
+.memo-text{flex:1;font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;word-break:break-all;cursor:pointer}
+.memo-card.done-memo .memo-text{text-decoration:line-through;color:var(--text3)}
+.memo-actions{display:flex;gap:3px;flex-shrink:0}
+.memo-to-task-btn{font-size:10px;padding:2px 7px;border-radius:999px;background:var(--accent-bg);color:var(--accent);border:none;cursor:pointer;font-weight:500;white-space:nowrap;transition:background .12s}
+.memo-to-task-btn:hover{background:#d0dff5}
+/* カレンダー改善 */
+.cal-done-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-left:auto}
+.cal-cell{background:var(--surface);min-height:80px;padding:4px;vertical-align:top;cursor:pointer;transition:background .1s}
+.cal-cell:hover{background:#f5f4f0}
+.cal-task-chip{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;cursor:pointer;font-weight:500;display:block}
+.cal-task-chip:hover{filter:brightness(.88)}
 </style>
 </head>
 <body>
@@ -234,6 +253,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('main',this)">一覧 ＆ ガント</button>
   <button class="tab-btn" onclick="switchTab('cal',this)">カレンダー</button>
+  <button class="tab-btn" onclick="switchTab('memo',this)">メモ</button>
 </div>
 <div class="statsbar">
   <div class="stat-pill"><div><div class="stat-pill-val" id="s-total">0</div><div class="stat-pill-lbl">全タスク</div></div></div>
@@ -281,8 +301,28 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div class="cal-title" id="cal-title"></div>
       <button class="cal-nav" onclick="calMove(1)">▶</button>
       <button class="cal-nav" onclick="calGoToday()">今月</button>
+      <div class="cal-done-toggle">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none">
+          <input type="checkbox" id="cal-show-done" onchange="renderCalendar()" style="accent-color:var(--accent)">
+          <span>完了タスクを表示</span>
+        </label>
+      </div>
     </div>
     <div id="cal-root"></div>
+  </div>
+</div>
+
+<!-- メモタブ -->
+<div class="tab-view" id="tab-memo">
+  <div class="memo-view">
+    <div class="memo-add-area">
+      <textarea id="memo-input" placeholder="メモを入力してください...&#10;（Ctrl+Enterで追加）"></textarea>
+      <div class="memo-add-footer">
+        <button class="btn btn-primary" style="width:auto" onclick="addMemo()">＋ メモを追加</button>
+      </div>
+    </div>
+    <div id="memo-active-list" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div id="memo-done-section"></div>
   </div>
 </div>
 
@@ -404,7 +444,7 @@ function workdaysUntil(endDs){
 function calDaysUntil(endDs){return Math.round((new Date(endDs)-new Date(todayStr()))/86400000);}
 
 // ── Storage ───────────────────────────────────────────
-let tasks=[],nextId=1,editId=null,editParentId=null,doneCollapsed=false;
+let tasks=[],memos=[],nextId=1,nextMemoId=1,editId=null,editParentId=null,doneCollapsed=false;
 let colName=160,colMember=80;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const collapsedGroups=new Set();
@@ -427,6 +467,7 @@ async function load(){
     if(snap.exists()){
       const d=snap.data();
       tasks=d.tasks||[];nextId=d.nextId||1;
+      memos=d.memos||[];nextMemoId=d.nextMemoId||1;
       colName=d.colName||160;colMember=d.colMember||80;
       tasks.forEach(t=>{
         if(t.isGroup===undefined)t.isGroup=false;
@@ -434,34 +475,31 @@ async function load(){
         if(!t.children)t.children=[];
       });
     } else {
-      // Firestoreにデータがない場合、ローカルストレージから移行
       const raw=localStorage.getItem('todo_tasks_v3')||localStorage.getItem('todo_tasks_v2');
       if(raw){
         const d=JSON.parse(raw);tasks=d.tasks||[];nextId=d.nextId||1;
+        memos=d.memos||[];nextMemoId=d.nextMemoId||1;
         tasks.forEach(t=>{
           if(t.isGroup===undefined)t.isGroup=false;
           if(t.parentId===undefined)t.parentId=null;
           if(!t.children)t.children=[];
         });
-        await save(); // Firestoreに保存
-        console.log('ローカルデータをFirestoreに移行しました');
+        await save();
       }
     }
   }catch(e){
     console.error('load error',e);
-    // Firestore失敗時はローカルストレージにフォールバック
     const raw=localStorage.getItem('todo_tasks_v3');
-    if(raw){const d=JSON.parse(raw);tasks=d.tasks||[];nextId=d.nextId||1;}
+    if(raw){const d=JSON.parse(raw);tasks=d.tasks||[];nextId=d.nextId||1;memos=d.memos||[];nextMemoId=d.nextMemoId||1;}
   }
   hideLoading();
   render();
 }
 
 async function save(){
-  // ローカルにも保存（オフライン時のバックアップ）
-  localStorage.setItem('todo_tasks_v3',JSON.stringify({tasks,nextId,colName,colMember}));
+  localStorage.setItem('todo_tasks_v3',JSON.stringify({tasks,nextId,memos,nextMemoId,colName,colMember}));
   try{
-    await setDoc(DOC_REF,{tasks,nextId,colName,colMember,updatedAt:Date.now()});
+    await setDoc(DOC_REF,{tasks,nextId,memos,nextMemoId,colName,colMember,updatedAt:Date.now()});
   }catch(e){
     console.error('save error',e);
   }
@@ -480,6 +518,7 @@ function switchTab(name,el){
   document.querySelectorAll('.tab-view').forEach(v=>v.classList.remove('active'));
   el.classList.add('active');document.getElementById('tab-'+name).classList.add('active');
   if(name==='cal')renderCalendar();
+  if(name==='memo')renderMemos();
 }
 
 // ── Modal ─────────────────────────────────────────────
@@ -999,22 +1038,35 @@ function renderCalendar(){
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const dim=new Date(calYear,calMonth+1,0).getDate();
   const td=todayStr();
+  const showDone=document.getElementById('cal-show-done')?.checked||false;
+  // タスクマップ：期限日ベースで表示（全期間ではなく期限日のみ）
   const taskMap={};
-  tasks.filter(t=>!t.isGroup).forEach((t,i)=>{
-    const s=new Date(t.start),e=new Date(t.end),cur=new Date(s);
-    while(cur<=e){const ds=dStr(cur);if(!taskMap[ds])taskMap[ds]=[];taskMap[ds].push({t,i});cur.setDate(cur.getDate()+1);}
+  tasks.filter(t=>!t.isGroup&&(showDone||!t.done)).forEach((t,i)=>{
+    const ds=t.end;
+    if(!taskMap[ds])taskMap[ds]=[];
+    taskMap[ds].push({t,i});
+  });
+  // 期限順にソート
+  Object.keys(taskMap).forEach(ds=>{
+    taskMap[ds].sort((a,b)=>a.t.end.localeCompare(b.t.end));
   });
   let html=`<div class="cal-grid">`;
   DAY.forEach((n,i)=>{html+=`<div class="cal-day-header${i===0?' sun':i===6?' sat':''}">${n}</div>`;});
-  for(let i=0;i<firstDay;i++){const d=new Date(calYear,calMonth,1-firstDay+i);html+=`<div class="cal-cell other-month">${calCell(d,dStr(d),taskMap,td)}</div>`;}
+  for(let i=0;i<firstDay;i++){
+    const d=new Date(calYear,calMonth,1-firstDay+i);
+    html+=`<div class="cal-cell other-month" onclick="calAddTask('${dStr(d)}')">${calCell(d,dStr(d),taskMap,td)}</div>`;
+  }
   for(let day=1;day<=dim;day++){
     const d=new Date(calYear,calMonth,day),ds=dStr(d),dow=d.getDay();
     let cls='cal-cell';
     if(ds===td)cls+=' today-cell';else if(dow===6)cls+=' sat-cell';else if(dow===0||isHoliday(ds))cls+=isHoliday(ds)?' hol-cell':' sun-cell';
-    html+=`<div class="${cls}">${calCell(d,ds,taskMap,td)}</div>`;
+    html+=`<div class="${cls}" onclick="calAddTask('${ds}')">${calCell(d,ds,taskMap,td)}</div>`;
   }
   const tr=(7-(firstDay+dim)%7)%7;
-  for(let i=1;i<=tr;i++){const d=new Date(calYear,calMonth+1,i);html+=`<div class="cal-cell other-month">${calCell(d,dStr(d),taskMap,td)}</div>`;}
+  for(let i=1;i<=tr;i++){
+    const d=new Date(calYear,calMonth+1,i);
+    html+=`<div class="cal-cell other-month" onclick="calAddTask('${dStr(d)}')">${calCell(d,dStr(d),taskMap,td)}</div>`;
+  }
   html+=`</div>`;
   document.getElementById('cal-root').innerHTML=html;
 }
@@ -1022,16 +1074,100 @@ function calCell(d,ds,taskMap,td){
   const hn=HOL_NAMES[ds]||'';
   let h=`<div class="cal-date-num">${d.getDate()}</div>`;
   if(hn)h+=`<div class="cal-hol-label">${hn}</div>`;
-  (taskMap[ds]||[]).forEach(({t,i},idx)=>{
-    if(idx>=3){if(idx===3)h+=`<div style="font-size:9px;color:var(--text3)">+${(taskMap[ds].length-3)}件</div>`;return;}
+  (taskMap[ds]||[]).forEach(({t,i})=>{
     const color=BAR_COLORS[i%BAR_COLORS.length];
     const isDue=ds===t.end;
-    h+=`<div class="cal-task-chip" style="background:${t.done?'#c0bfba':color}" onclick="openModal(${t.id})" title="${t.name}${isDue?' ★期限':''}">${isDue?'★':''} ${t.name}</div>`;
+    h+=`<div class="cal-task-chip" style="background:${t.done?'#c0bfba':color}" onclick="event.stopPropagation();openModal(${t.id})" title="${t.name}">${isDue?'★':''} ${t.name}</div>`;
   });
   return h;
 }
+function calAddTask(ds){
+  // 日付クリックでタスク追加モーダルを開き、期限をその日に設定
+  openModal();
+  setTimeout(()=>{
+    document.getElementById('f-end').value=ds;
+    document.getElementById('f-start').value=ds;
+  },50);
+}
 
-function render(){renderStats();renderList();renderGantt();if(document.getElementById('tab-cal').classList.contains('active'))renderCalendar();}
+// ── Memo ──────────────────────────────────────────────
+async function addMemo(){
+  const input=document.getElementById('memo-input');
+  const text=input.value.trim();
+  if(!text)return;
+  memos.unshift({id:nextMemoId++,text,done:false,createdAt:Date.now()});
+  input.value='';
+  await save();renderMemos();
+}
+async function toggleMemo(id){
+  const m=memos.find(m=>m.id===id);if(!m)return;
+  m.done=!m.done;
+  await save();renderMemos();
+}
+async function deleteMemo(id){
+  memos=memos.filter(m=>m.id!==id);
+  await save();renderMemos();
+}
+async function memoToTask(id){
+  const m=memos.find(m=>m.id===id);if(!m)return;
+  // メモの内容をタスク名に入れてモーダルを開く
+  openModal();
+  setTimeout(()=>{
+    document.getElementById('f-name').value=m.text.split('\n')[0].slice(0,50);
+    document.getElementById('f-memo').value=m.text;
+  },50);
+  // メモを削除
+  memos=memos.filter(m=>m.id!==id);
+  await save();renderMemos();
+}
+function renderMemos(){
+  const active=memos.filter(m=>!m.done);
+  const done=memos.filter(m=>m.done);
+  const activeEl=document.getElementById('memo-active-list');
+  const doneEl=document.getElementById('memo-done-section');
+  if(!activeEl||!doneEl)return;
+  activeEl.innerHTML=active.length?active.map(m=>`
+    <div class="memo-card">
+      <div class="memo-text" ondblclick="startEditMemo(${m.id})" title="ダブルクリックで編集">${escHtml(m.text)}</div>
+      <div class="memo-actions">
+        <button class="memo-to-task-btn" onclick="memoToTask(${m.id})">→ タスク化</button>
+        <button class="icon-btn" onclick="toggleMemo(${m.id})" title="完了にする" style="font-size:14px">✓</button>
+        <button class="icon-btn del" onclick="deleteMemo(${m.id})" title="削除">🗑</button>
+      </div>
+    </div>`).join(''):'<div class="empty"><div class="empty-icon">📝</div>メモがありません</div>';
+  if(done.length){
+    doneEl.innerHTML=`<div class="section-label" style="margin-top:1rem">完了済みメモ <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${done.length}件)</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px">${done.map(m=>`
+        <div class="memo-card done-memo">
+          <div class="memo-text">${escHtml(m.text)}</div>
+          <div class="memo-actions">
+            <button class="icon-btn" onclick="toggleMemo(${m.id})" title="未完了に戻す" style="font-size:11px">↩</button>
+            <button class="icon-btn del" onclick="deleteMemo(${m.id})" title="削除">🗑</button>
+          </div>
+        </div>`).join('')}</div>`;
+  }else doneEl.innerHTML='';
+}
+function startEditMemo(id){
+  const m=memos.find(m=>m.id===id);if(!m)return;
+  const card=document.querySelector(`.memo-card:not(.done-memo) .memo-text[ondblclick*="${id}"]`)?.closest('.memo-card');
+  if(!card)return;
+  const ta=document.createElement('textarea');
+  ta.value=m.text;ta.style.cssText='width:100%;padding:6px 8px;border-radius:8px;border:.5px solid var(--accent);font-size:13px;font-family:inherit;resize:vertical;min-height:60px;background:var(--surface)';
+  const textEl=card.querySelector('.memo-text');
+  card.replaceChild(ta,textEl);ta.focus();
+  const finish=async()=>{
+    m.text=ta.value.trim()||m.text;
+    await save();renderMemos();
+  };
+  ta.addEventListener('blur',finish);
+  ta.addEventListener('keydown',e=>{if(e.key==='Escape')renderMemos();if(e.key==='Enter'&&e.ctrlKey)finish();});
+}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+
+function render(){renderStats();renderList();renderGantt();
+  if(document.getElementById('tab-cal').classList.contains('active'))renderCalendar();
+  if(document.getElementById('tab-memo').classList.contains('active'))renderMemos();
+}
 
 // ── onclick用にwindowへ登録（moduleスコープ対策）──────
 window.openModal=openModal;
@@ -1049,6 +1185,16 @@ window.onGroupToggle=onGroupToggle;
 window.applySort=applySort;
 window.calMove=calMove;
 window.calGoToday=calGoToday;
+window.calAddTask=calAddTask;
+window.addMemo=addMemo;
+window.toggleMemo=toggleMemo;
+window.deleteMemo=deleteMemo;
+window.memoToTask=memoToTask;
+window.startEditMemo=startEditMemo;
+// メモ入力欄でCtrl+Enterで追加
+document.getElementById('memo-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();addMemo();}
+});
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeModal();closeConfirm();}
