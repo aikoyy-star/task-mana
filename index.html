@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ＴＡＳＫ</title>
+<title>TASK</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -16,6 +16,7 @@
   --amber:#8a5c00;--amber-bg:#fdf3dc;
   --radius:10px;--radius-lg:14px;
   --sat-bg:rgba(59,130,246,0.10);--sun-bg:rgba(220,38,38,0.10);
+  --sp-nav-h:60px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -228,6 +229,80 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .cal-cell:hover{background:#f5f4f0}
 .cal-task-chip{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;cursor:pointer;font-weight:500;display:block}
 .cal-task-chip:hover{filter:brightness(.88)}
+/* ── スマホ対応 ── */
+@media (max-width:768px){
+  body{overflow:auto}
+  .topbar{height:48px;padding:0 1rem}
+  .topbar-logo{font-size:14px}
+  .clock-date{font-size:11px}
+  .clock-time{font-size:15px}
+  /* PC用タブバー・statsbarを非表示 */
+  .tab-bar{display:none}
+  .statsbar{display:none}
+  /* スマホ用ナビ */
+  .sp-nav{display:flex!important}
+  /* tab-view をスタック表示に */
+  .tab-view{display:none;flex:none;min-height:0;overflow:visible}
+  .tab-view.active{display:block}
+  #tab-main .workspace{display:block}
+  #tab-main .pane-list{border-right:none;padding:.75rem 1rem;overflow-y:visible}
+  #tab-main .pane-gantt{display:none}/* スマホではガント非表示 */
+  .pane-gantt{display:none}
+  /* カレンダー */
+  .cal-view{padding:.75rem 1rem;padding-bottom:calc(var(--sp-nav-h)+1rem)}
+  .cal-header{flex-wrap:wrap;gap:6px}
+  .cal-done-toggle{width:100%;justify-content:flex-end}
+  .cal-cell{min-height:64px;padding:3px}
+  .cal-date-num{font-size:10px;width:18px;height:18px}
+  .cal-task-chip{font-size:9px;padding:1px 4px}
+  /* メモ */
+  .memo-view{padding:.75rem 1rem;padding-bottom:calc(var(--sp-nav-h)+1rem)}
+  /* タスクカード */
+  .task-card{padding:6px 8px;gap:6px}
+  .task-deadline{width:46px}
+  .dl-day{font-size:16px}
+  .task-name{font-size:12px}
+  .badge{font-size:9px;padding:1px 5px}
+  /* ボタン */
+  .btn-primary{padding:10px 14px;font-size:14px}
+  .add-btn-top{margin-bottom:.6rem}
+  /* グループ */
+  .group-name{font-size:12px}
+  /* フォーム */
+  .form-row{grid-template-columns:1fr}
+  /* 一覧のpadding-bottom（ナビ分） */
+  .pane-list{padding-bottom:calc(var(--sp-nav-h)+1rem)}
+}
+/* スマホ用ボトムナビ */
+.sp-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  height:var(--sp-nav-h);
+  background:var(--surface);
+  border-top:.5px solid var(--border);
+  z-index:100;
+  flex-direction:row;
+  align-items:stretch;
+}
+.sp-nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;font-size:10px;color:var(--text3);background:none;border:none;
+  cursor:pointer;font-family:inherit;transition:color .15s;padding:4px 0;
+}
+.sp-nav-btn.active{color:var(--accent)}
+.sp-nav-btn .sp-icon{font-size:20px;line-height:1}
+/* スマホ用stats（コンパクト） */
+.sp-stats{
+  display:none;
+  background:var(--surface);border-bottom:.5px solid var(--border);
+  padding:6px 1rem;gap:12px;
+}
+@media(max-width:768px){
+  .sp-stats{display:flex}
+}
+.sp-stat{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)}
+.sp-stat-val{font-weight:700;font-family:'DM Mono',monospace;font-size:14px}
+.sp-stat-val.red{color:var(--red)}.sp-stat-val.green{color:var(--green)}
 </style>
 </head>
 <body>
@@ -250,6 +325,12 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   </div>
   <div style="width:120px"></div>
 </header>
+<!-- スマホ用コンパクトstats -->
+<div class="sp-stats">
+  <div class="sp-stat"><span class="sp-stat-val" id="sp-s-total">0</span><span>件</span></div>
+  <div class="sp-stat"><span class="sp-stat-val green" id="sp-s-done">0</span><span>完了</span></div>
+  <div class="sp-stat"><span class="sp-stat-val red" id="sp-s-over">0</span><span>超過</span></div>
+</div>
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('main',this)">一覧 ＆ ガント</button>
   <button class="tab-btn" onclick="switchTab('cal',this)">カレンダー</button>
@@ -381,6 +462,26 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     </div>
   </div>
 </div>
+
+<!-- スマホ用ボトムナビ -->
+<nav class="sp-nav" id="sp-nav">
+  <button class="sp-nav-btn active" id="sp-btn-main" onclick="spSwitchTab('main',this)">
+    <span class="sp-icon">☰</span>
+    <span>一覧</span>
+  </button>
+  <button class="sp-nav-btn" id="sp-btn-cal" onclick="spSwitchTab('cal',this)">
+    <span class="sp-icon">📅</span>
+    <span>カレンダー</span>
+  </button>
+  <button class="sp-nav-btn" id="sp-btn-memo" onclick="spSwitchTab('memo',this)">
+    <span class="sp-icon">📝</span>
+    <span>メモ</span>
+  </button>
+  <button class="sp-nav-btn" onclick="openModal()">
+    <span class="sp-icon">＋</span>
+    <span>追加</span>
+  </button>
+</nav>
 
 <div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(245,244,240,.85);z-index:999;align-items:center;justify-content:center;font-size:14px;color:#6b6a65;font-family:'Noto Sans JP',sans-serif;letter-spacing:.05em"></div>
 <script type="module">
@@ -519,6 +620,16 @@ function switchTab(name,el){
   el.classList.add('active');document.getElementById('tab-'+name).classList.add('active');
   if(name==='cal')renderCalendar();
   if(name==='memo')renderMemos();
+}
+// スマホ用タブ切り替え
+function spSwitchTab(name,el){
+  document.querySelectorAll('.sp-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(v=>v.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='cal')renderCalendar();
+  if(name==='memo')renderMemos();
+  window.scrollTo(0,0);
 }
 
 // ── Modal ─────────────────────────────────────────────
@@ -782,6 +893,8 @@ function renderStats(){
   const total=leaf.length,done=leaf.filter(t=>t.done).length,over=leaf.filter(t=>!t.done&&t.end<todayStr()).length,wip=leaf.filter(t=>!t.done).length;
   document.getElementById('s-total').textContent=total;document.getElementById('s-done').textContent=done;
   document.getElementById('s-over').textContent=over;document.getElementById('s-wip').textContent=wip;
+  const st=document.getElementById('sp-s-total'),sd=document.getElementById('sp-s-done'),so=document.getElementById('sp-s-over');
+  if(st)st.textContent=total;if(sd)sd.textContent=done;if(so)so.textContent=over;
 }
 
 // ── Gantt ──────────────────────────────────────────────
@@ -1191,6 +1304,7 @@ window.toggleMemo=toggleMemo;
 window.deleteMemo=deleteMemo;
 window.memoToTask=memoToTask;
 window.startEditMemo=startEditMemo;
+window.spSwitchTab=spSwitchTab;
 // メモ入力欄でCtrl+Enterで追加
 document.getElementById('memo-input').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();addMemo();}
