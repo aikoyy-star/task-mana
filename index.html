@@ -303,7 +303,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .sp-stat{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)}
 .sp-stat-val{font-weight:700;font-family:'DM Mono',monospace;font-size:14px}
 .sp-stat-val.red{color:var(--red)}.sp-stat-val.green{color:var(--green)}
-/* ── 部下管理タブ ── */
+/* ── メンバータブ ── */
 .team-view{flex:1;overflow-y:auto;padding:1rem 1.5rem;background:var(--bg);display:flex;flex-direction:column;gap:0}
 .team-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
 .member-block{background:var(--surface);border-radius:var(--radius-lg);border:.5px solid var(--border);margin-bottom:12px;overflow:hidden}
@@ -352,7 +352,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <button class="tab-btn active" onclick="switchTab('main',this)">一覧 ＆ ガント</button>
   <button class="tab-btn" onclick="switchTab('cal',this)">カレンダー</button>
   <button class="tab-btn" onclick="switchTab('memo',this)">メモ</button>
-  <button class="tab-btn" onclick="switchTab('team',this)">部下管理</button>
+  <button class="tab-btn" onclick="switchTab('team',this)">メンバー</button>
 </div>
 <div class="statsbar">
   <div class="stat-pill"><div><div class="stat-pill-val" id="s-total">0</div><div class="stat-pill-lbl">全タスク</div></div></div>
@@ -425,12 +425,12 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   </div>
 </div>
 
-<!-- 部下管理タブ -->
+<!-- メンバータブ -->
 <div class="tab-view" id="tab-team">
   <div class="team-view">
     <div class="team-header">
       <div class="member-add-form">
-        <input type="text" id="member-name-input" placeholder="部下の名前を入力...">
+        <input type="text" id="member-name-input" placeholder="メンバーの名前を入力...">
         <button class="btn btn-primary" style="width:auto" onclick="addMember()">＋ 追加</button>
       </div>
     </div>
@@ -1312,7 +1312,7 @@ function startEditMemo(id){
 }
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
 
-// ── 部下管理 ──────────────────────────────────────────
+// ── メンバー管理 ──────────────────────────────────────────
 // 火曜日始まりの週のキーを返す（例: 2026-04-07）
 function getWeekKey(date){
   const d=new Date(date||Date.now());
@@ -1371,7 +1371,7 @@ async function addWeekToMember(memberId){
 function renderTeam(){
   const root=document.getElementById('team-root');if(!root)return;
   if(!members.length){
-    root.innerHTML='<div class="empty"><div class="empty-icon">👥</div>部下を追加してください</div>';return;
+    root.innerHTML='<div class="empty"><div class="empty-icon">👥</div>メンバーを追加してください</div>';return;
   }
   const currentWeekKey=getWeekKey();
   root.innerHTML=members.map(m=>{
