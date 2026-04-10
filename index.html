@@ -38,7 +38,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .tab-view{display:none;flex:1;min-height:0;overflow:hidden}.tab-view.active{display:flex}
 .workspace{display:grid;grid-template-columns:420px 1fr;min-height:0;flex:1;width:100%}
 .pane-list{border-right:.5px solid var(--border);background:var(--bg);overflow-y:auto;padding:.75rem 1.25rem;display:flex;flex-direction:column;gap:0}
-.pane-gantt{background:var(--surface);overflow:auto;padding:1rem 1.25rem}
+.pane-gantt{background:var(--surface);overflow:hidden;padding:1rem 1.25rem;display:flex;flex-direction:column}
 .pane-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
 .pane-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em}
 /* add button - top */
@@ -119,8 +119,43 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .done-toggle.collapsed .arrow{transform:rotate(-90deg)}
 .empty{text-align:center;padding:2rem 1rem;color:var(--text3);font-size:13px}
 .empty-icon{font-size:26px;margin-bottom:6px}
+
+/* ── メンバー（一覧内埋め込み版） ── */
+.team-inline-section{margin-bottom:6px}
+.team-inline-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.team-inline-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:6px;flex:1}
+.team-inline-title::after{content:'';flex:1;height:.5px;background:var(--border)}
+.team-inline-toggle{cursor:pointer;user-select:none}
+.team-inline-toggle .arrow{font-size:10px;transition:transform .2s}
+.team-inline-toggle.collapsed .arrow{transform:rotate(-90deg)}
+.team-inline-body{display:flex;flex-direction:column;gap:8px}
+.member-inline-block{background:var(--surface);border-radius:var(--radius-lg);border:.5px solid var(--border);overflow:hidden}
+.member-inline-hdr{background:var(--accent-bg);padding:7px 10px;display:flex;align-items:center;gap:6px;border-bottom:.5px solid var(--border);cursor:pointer;user-select:none;transition:background .12s}
+.member-inline-hdr:hover{background:#dce6f5}
+.member-inline-name{font-size:12px;font-weight:700;color:var(--accent);flex:1}
+.member-inline-body{padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.week-block-inline{display:flex;flex-direction:column;gap:4px}
+.week-label-inline{font-size:10px;font-weight:700;color:var(--text3);display:flex;align-items:center;gap:5px}
+.week-label-inline.current-week{color:var(--accent)}
+.wk-badge{font-size:9px;background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px;font-weight:500}
+.week-notes-inline{width:100%;min-height:56px;padding:6px 8px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:12px;font-family:inherit;resize:vertical;transition:border-color .15s;line-height:1.6}
+.week-notes-inline:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.week-notes-saved{border-color:var(--green)!important}
+.member-add-inline{display:flex;gap:6px;align-items:center;margin-bottom:2px}
+.member-add-inline input{flex:1;padding:5px 8px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit}
+.member-add-inline input:focus{outline:none;border-color:var(--accent)}
+
 /* gantt */
-.gantt-scroll{overflow-x:auto;overflow-y:visible}
+.gantt-scroll-wrapper{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
+/* スクロールバーを上部に表示するためのトリック */
+.gantt-scroll-top{overflow-x:scroll;overflow-y:hidden;height:16px;flex-shrink:0}
+.gantt-scroll-top::-webkit-scrollbar{height:6px}
+.gantt-scroll-top::-webkit-scrollbar-track{background:var(--surface2);border-radius:3px}
+.gantt-scroll-top::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.gantt-scroll-top::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+.gantt-scroll-top-inner{height:1px}
+.gantt-scroll-main{overflow-x:scroll;overflow-y:auto;flex:1;min-height:0;scrollbar-width:none}
+.gantt-scroll-main::-webkit-scrollbar{display:none}
 .gantt-name-col-h{flex-shrink:0;font-size:10px;color:var(--text3);padding:0 4px 4px 26px;display:flex;align-items:center}
 .gantt-member-col-h{flex-shrink:0;font-size:10px;color:var(--text3);padding:0 4px 4px;display:flex;align-items:center}
 .gantt-row{display:flex;align-items:center;border-radius:4px;transition:background .12s;user-select:none;position:relative}
@@ -188,7 +223,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent);background:var(--surface)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem}
-/* group toggle in modal - スイッチ式 */
+/* group toggle in modal */
 .group-toggle-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border-radius:var(--radius);margin-bottom:11px;border:.5px solid var(--border2)}
 .toggle-switch{position:relative;width:40px;height:22px;flex-shrink:0}
 .toggle-switch input{opacity:0;width:0;height:0;position:absolute}
@@ -236,41 +271,31 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   .topbar-logo{font-size:14px}
   .clock-date{font-size:11px}
   .clock-time{font-size:15px}
-  /* PC用タブバー・statsbarを非表示 */
   .tab-bar{display:none}
   .statsbar{display:none}
-  /* スマホ用ナビ */
   .sp-nav{display:flex!important}
-  /* tab-view をスタック表示に */
   .tab-view{display:none;flex:none;min-height:0;overflow:visible}
   .tab-view.active{display:block}
   #tab-main .workspace{display:block}
   #tab-main .pane-list{border-right:none;padding:.75rem 1rem;overflow-y:visible}
-  #tab-main .pane-gantt{display:none}/* スマホではガント非表示 */
+  #tab-main .pane-gantt{display:none}
   .pane-gantt{display:none}
-  /* カレンダー */
   .cal-view{padding:.75rem 1rem;padding-bottom:calc(var(--sp-nav-h)+1rem)}
   .cal-header{flex-wrap:wrap;gap:6px}
   .cal-done-toggle{width:100%;justify-content:flex-end}
   .cal-cell{min-height:64px;padding:3px}
   .cal-date-num{font-size:10px;width:18px;height:18px}
   .cal-task-chip{font-size:9px;padding:1px 4px}
-  /* メモ */
   .memo-view{padding:.75rem 1rem;padding-bottom:calc(var(--sp-nav-h)+1rem)}
-  /* タスクカード */
   .task-card{padding:6px 8px;gap:6px}
   .task-deadline{width:46px}
   .dl-day{font-size:16px}
   .task-name{font-size:12px}
   .badge{font-size:9px;padding:1px 5px}
-  /* ボタン */
   .btn-primary{padding:10px 14px;font-size:14px}
   .add-btn-top{margin-bottom:.6rem}
-  /* グループ */
   .group-name{font-size:12px}
-  /* フォーム */
   .form-row{grid-template-columns:1fr}
-  /* 一覧のpadding-bottom（ナビ分） */
   .pane-list{padding-bottom:calc(var(--sp-nav-h)+1rem)}
 }
 /* スマホ用ボトムナビ */
@@ -291,7 +316,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 }
 .sp-nav-btn.active{color:var(--accent)}
 .sp-nav-btn .sp-icon{font-size:20px;line-height:1}
-/* スマホ用stats（コンパクト） */
+/* スマホ用stats */
 .sp-stats{
   display:none;
   background:var(--surface);border-bottom:.5px solid var(--border);
@@ -303,23 +328,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .sp-stat{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)}
 .sp-stat-val{font-weight:700;font-family:'DM Mono',monospace;font-size:14px}
 .sp-stat-val.red{color:var(--red)}.sp-stat-val.green{color:var(--green)}
-/* ── メンバータブ ── */
-.team-view{flex:1;overflow-y:auto;padding:1rem 1.5rem;background:var(--bg);display:flex;flex-direction:column;gap:0}
-.team-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
-.member-block{background:var(--surface);border-radius:var(--radius-lg);border:.5px solid var(--border);margin-bottom:12px;overflow:hidden}
-.member-hdr{background:var(--accent-bg);padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:.5px solid var(--border)}
-.member-hdr-name{font-size:14px;font-weight:700;color:var(--accent);flex:1}
-.week-block{padding:10px 14px;border-bottom:.5px solid var(--border)}
-.week-block:last-child{border-bottom:none}
-.week-label{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:8px}
-.week-label.current-week{color:var(--accent)}
-.week-label span.wk-badge{font-size:10px;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;font-weight:500}
-.week-notes{width:100%;min-height:72px;padding:7px 10px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;resize:vertical;transition:border-color .15s;line-height:1.7}
-.week-notes:focus{outline:none;border-color:var(--accent);background:var(--surface)}
-.week-notes-saved{border-color:var(--green)!important}
-.member-add-form{display:flex;gap:8px;align-items:center}
-.member-add-form input{flex:1;padding:7px 10px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit}
-.member-add-form input:focus{outline:none;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -352,7 +360,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <button class="tab-btn active" onclick="switchTab('main',this)">一覧 ＆ ガント</button>
   <button class="tab-btn" onclick="switchTab('cal',this)">カレンダー</button>
   <button class="tab-btn" onclick="switchTab('memo',this)">メモ</button>
-  <button class="tab-btn" onclick="switchTab('team',this)">メンバー</button>
 </div>
 <div class="statsbar">
   <div class="stat-pill"><div><div class="stat-pill-val" id="s-total">0</div><div class="stat-pill-lbl">全タスク</div></div></div>
@@ -364,7 +371,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="workspace">
     <div class="pane-list">
       <div class="pane-header"><div class="pane-title">タスク一覧</div></div>
-      <!-- ① 追加ボタンを最上部に -->
       <div class="add-btn-top">
         <button class="btn btn-primary" onclick="openModal()">＋ タスクを追加　<span style="font-size:11px;opacity:.6">Ctrl+K</span></button>
       </div>
@@ -382,6 +388,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
         </select>
       </div>
       <div id="list-todo"></div>
+      <!-- メンバー管理セクション（未完了・完了タスクの間に配置） -->
+      <div id="list-team"></div>
       <div id="list-done"></div>
     </div>
     <div class="pane-gantt" id="pane-gantt">
@@ -389,7 +397,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
         <div class="pane-title">ガントチャート</div>
         <div style="font-size:10px;color:var(--text3)">タスク名クリックで編集 ／ ⠿ ドラッグで並び替え ／ 列境界ドラッグで幅変更</div>
       </div>
-      <div id="gantt-root"></div>
+      <div id="gantt-root" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden"></div>
     </div>
   </div>
 </div>
@@ -425,19 +433,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   </div>
 </div>
 
-<!-- メンバータブ -->
-<div class="tab-view" id="tab-team">
-  <div class="team-view">
-    <div class="team-header">
-      <div class="member-add-form">
-        <input type="text" id="member-name-input" placeholder="メンバーの名前を入力...">
-        <button class="btn btn-primary" style="width:auto" onclick="addMember()">＋ 追加</button>
-      </div>
-    </div>
-    <div id="team-root"></div>
-  </div>
-</div>
-
 <!-- Modal -->
 <div class="overlay" id="overlay">
   <div class="modal">
@@ -445,7 +440,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <h2 id="modal-title">タスクを追加</h2>
       <button class="icon-btn" onclick="closeModal()" style="font-size:18px;width:30px;height:30px">×</button>
     </div>
-    <!-- ② グループ切り替え：スイッチUIに変更 -->
     <div class="group-toggle-row" id="group-toggle-row">
       <label class="toggle-switch">
         <input type="checkbox" id="f-is-group" onchange="onGroupToggle()">
@@ -520,12 +514,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ▼▼▼ パスワードをここに設定してください ▼▼▼
 const PASSWORD = 'yasu0820';
-// ▲▲▲━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// パスワード認証（セッション中は記憶）
 function checkPassword(){
   const input=document.getElementById('pw-input').value;
   const err=document.getElementById('pw-error');
@@ -541,7 +531,6 @@ function checkPassword(){
 }
 window.checkPassword=checkPassword;
 
-// 既にログイン済みならパスワード画面をスキップ
 if(sessionStorage.getItem('auth')==='ok'){
   document.getElementById('pw-screen').style.display='none';
 }
@@ -576,13 +565,12 @@ function workdaysUntil(endDs){
 function calDaysUntil(endDs){return Math.round((new Date(endDs)-new Date(todayStr()))/86400000);}
 
 // ── Storage ───────────────────────────────────────────
-let tasks=[],memos=[],members=[],nextId=1,nextMemoId=1,nextMemberId=1,editId=null,editParentId=null,doneCollapsed=false;
+let tasks=[],memos=[],members=[],nextId=1,nextMemoId=1,nextMemberId=1,editId=null,editParentId=null,doneCollapsed=false,teamCollapsed=false;
 let colName=160,colMember=80;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const collapsedGroups=new Set();
-let isSaving=false;
+const collapsedMembers=new Set();
 
-// 読み込み中インジケーター
 function showLoading(msg){
   const el=document.getElementById('loading-overlay');
   if(el){el.textContent=msg||'読み込み中...';el.style.display='flex';}
@@ -653,9 +641,7 @@ function switchTab(name,el){
   el.classList.add('active');document.getElementById('tab-'+name).classList.add('active');
   if(name==='cal')renderCalendar();
   if(name==='memo')renderMemos();
-  if(name==='team')renderTeam();
 }
-// スマホ用タブ切り替え
 function spSwitchTab(name,el){
   document.querySelectorAll('.sp-nav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-view').forEach(v=>v.classList.remove('active'));
@@ -663,7 +649,6 @@ function spSwitchTab(name,el){
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='cal')renderCalendar();
   if(name==='memo')renderMemos();
-  if(name==='team')renderTeam();
   window.scrollTo(0,0);
 }
 
@@ -749,24 +734,21 @@ function deleteTaskItem(id){
 // ── Sort ──────────────────────────────────────────────
 function groupMinDeadline(g){
   const ch=g.children.map(cid=>tasks.find(t=>t.id===cid)).filter(Boolean);
-  // 未完了の小タスクのみで最短期限を計算
   const active=ch.filter(c=>!c.done);
-  if(!active.length) return g.end; // 全完了 or 子なしの場合はグループ自身の期限
+  if(!active.length) return g.end;
   return active.reduce((m,c)=>c.end<m?c.end:m,active[0].end);
 }
-// ⑨ 並び替えは常にtasks配列を並び替えて確実に反映
 async function applySort(){
   const sort=document.getElementById('f-sort').value;
   if(sort==='order'){render();return;}
   const tops=tasks.filter(t=>!t.parentId);
   tops.sort((a,b)=>{
-    // ⑩ 単独タスクをグループより上位に
     const aIsGrp=a.isGroup,bIsGrp=b.isGroup;
     if(sort==='deadline'){
       const ad=a.isGroup?groupMinDeadline(a):a.end;
       const bd=b.isGroup?groupMinDeadline(b):b.end;
       if(ad!==bd)return ad.localeCompare(bd);
-      if(aIsGrp!==bIsGrp)return aIsGrp?1:-1; // 同日なら単独タスクが上
+      if(aIsGrp!==bIsGrp)return aIsGrp?1:-1;
     }else if(sort==='priority'){
       const po=t=>t.priority==='high'?0:t.priority==='med'?1:2;
       if(po(a)!==po(b))return po(a)-po(b);
@@ -870,14 +852,12 @@ function groupBlockHTML(g){
   const toggleIcon=isOpen?'▼':'▶';
   return `<div class="group-block${allDone?' done-grp-block':''}" id="grp-${g.id}">
     <div class="group-header${anyOverdue?' has-overdue':''}${allDone?' done-grp':''}">
-      <!-- ③ 展開ボタンを左端に独立配置 -->
       <button class="grp-toggle-btn" onclick="event.stopPropagation();toggleGroup(${g.id})" title="展開・折りたたみ">${toggleIcon}</button>
       <div class="check-wrap" onclick="event.stopPropagation()">
         <button class="check-btn${allDone?' checked':''}" onclick="toggleDone(${g.id},event)">
           <svg class="checkmark" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
-      <!-- ③ グループ名エリア全体クリックで編集 -->
       <div class="group-edit-area" onclick="openModal(${g.id})">
         <span class="group-name">📁 ${g.name}</span>
         <div class="group-meta">
@@ -900,17 +880,136 @@ function toggleGroup(id){
   render();
 }
 
+// ── メンバー（一覧内インライン）────────────────────────
+function getWeekKey(date){
+  const d=new Date(date||Date.now());
+  const dow=d.getDay();
+  const diff=(dow===0)?-6:(dow===1)?-7:-(dow-2);
+  const tue=new Date(d);tue.setDate(d.getDate()+diff);
+  return dStr(tue);
+}
+function getWeekLabel(tueDStr){
+  const tue=new Date(tueDStr);
+  const mon=new Date(tue);mon.setDate(tue.getDate()+6);
+  return `${tue.getMonth()+1}/${tue.getDate()}（火）〜${mon.getMonth()+1}/${mon.getDate()}（月）`;
+}
+function isCurrentWeek(tueDStr){return getWeekKey()===tueDStr;}
+
+async function addMember(){
+  if(members.length>=5){alert('メンバーは最大5人まで登録できます');return;}
+  const inp=document.getElementById('member-name-inline-input');
+  if(!inp)return;
+  const name=inp.value.trim();if(!name)return;
+  const weekKey=getWeekKey();
+  members.push({id:nextMemberId++,name,weeks:{[weekKey]:''},createdAt:Date.now()});
+  inp.value='';
+  await save();render();
+}
+async function deleteMember(id){
+  confirmDelete(`「${members.find(m=>m.id===id)?.name}」を削除しますか？`,async()=>{
+    members=members.filter(m=>m.id!==id);await save();render();
+  });
+}
+let saveTimer={};
+function onWeekNoteChange(memberId,weekKey,val){
+  const m=members.find(m=>m.id===memberId);if(!m)return;
+  if(!m.weeks)m.weeks={};
+  m.weeks[weekKey]=val;
+  clearTimeout(saveTimer[memberId+'_'+weekKey]);
+  saveTimer[memberId+'_'+weekKey]=setTimeout(async()=>{
+    await save();
+    const ta=document.getElementById(`wn-${memberId}-${weekKey}`);
+    if(ta){ta.classList.add('week-notes-saved');setTimeout(()=>ta.classList.remove('week-notes-saved'),1000);}
+  },800);
+}
+async function addWeekToMember(memberId){
+  const m=members.find(m=>m.id===memberId);if(!m)return;
+  if(!m.weeks)m.weeks={};
+  const keys=Object.keys(m.weeks).sort();
+  const oldest=keys[0]||getWeekKey();
+  const prev=new Date(oldest);prev.setDate(prev.getDate()-7);
+  const prevKey=dStr(prev);
+  if(!m.weeks[prevKey])m.weeks[prevKey]='';
+  await save();render();
+}
+function toggleMemberInline(id){
+  if(collapsedMembers.has(id))collapsedMembers.delete(id);else collapsedMembers.add(id);
+  renderList();
+}
+function toggleTeamSection(){
+  teamCollapsed=!teamCollapsed;
+  const btn=document.querySelector('.team-inline-toggle');
+  const body=document.getElementById('team-inline-body-el');
+  if(btn)btn.classList.toggle('collapsed',teamCollapsed);
+  if(body)body.style.display=teamCollapsed?'none':'flex';
+}
+
+function renderTeamInline(){
+  const el=document.getElementById('list-team');if(!el)return;
+  const currentWeekKey=getWeekKey();
+  // 今週キーを確保
+  members.forEach(m=>{if(!m.weeks)m.weeks={};if(!m.weeks[currentWeekKey])m.weeks[currentWeekKey]='';});
+
+  const canAdd=members.length<5;
+  let membersHTML='';
+  members.forEach(m=>{
+    const isCollapsed=collapsedMembers.has(m.id);
+    const weekKeys=Object.keys(m.weeks).sort().reverse();
+    const weeksHTML=weekKeys.map(wk=>{
+      const isCur=isCurrentWeek(wk);
+      const safeId=`${m.id}-${wk}`;
+      return `<div class="week-block-inline">
+        <div class="week-label-inline${isCur?' current-week':''}">
+          ${getWeekLabel(wk)}
+          ${isCur?'<span class="wk-badge">今週</span>':''}
+        </div>
+        <textarea class="week-notes-inline" id="wn-${safeId}"
+          placeholder="今週のタスク・メモ..."
+          oninput="onWeekNoteChange(${m.id},'${wk}',this.value)"
+        >${escHtml2(m.weeks[wk]||'')}</textarea>
+      </div>`;
+    }).join('');
+    membersHTML+=`<div class="member-inline-block">
+      <div class="member-inline-hdr" onclick="toggleMemberInline(${m.id})">
+        <span style="font-size:10px;color:var(--text2);margin-right:2px">${isCollapsed?'▶':'▼'}</span>
+        <span class="member-inline-name">👤 ${m.name}</span>
+        <button class="btn btn-ghost" style="padding:2px 8px;font-size:10px;margin-right:4px" onclick="event.stopPropagation();addWeekToMember(${m.id})">＋ 過去週</button>
+        <button class="icon-btn del" onclick="event.stopPropagation();deleteMember(${m.id})" title="削除">🗑</button>
+      </div>
+      <div id="member-inline-body-${m.id}" style="display:${isCollapsed?'none':'block'}">
+        <div class="member-inline-body">${weeksHTML}</div>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML=`<div class="team-inline-section">
+    <div class="section-label team-inline-toggle${teamCollapsed?' collapsed':''}" onclick="toggleTeamSection()" style="cursor:pointer;user-select:none;margin-top:.75rem">
+      メンバー <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${members.length}/5人)</span>
+      <span class="arrow">▾</span>
+    </div>
+    <div id="team-inline-body-el" style="display:${teamCollapsed?'none':'flex'};flex-direction:column;gap:8px">
+      <div class="member-add-inline" style="margin-bottom:2px">
+        <input type="text" id="member-name-inline-input" placeholder="${canAdd?'メンバーの名前を入力...':'最大5人まで'}" ${canAdd?'':'disabled'} style="${canAdd?'':'opacity:.5;cursor:not-allowed'}" onkeydown="if(event.key==='Enter')addMember()">
+        <button class="btn btn-primary" style="width:auto;padding:5px 10px;font-size:12px;${canAdd?'':'opacity:.5;cursor:not-allowed'}" onclick="addMember()">＋ 追加</button>
+      </div>
+      ${members.length?membersHTML:'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px 0">メンバーを追加してください</div>'}
+    </div>
+  </div>`;
+}
+
 // ── Render list ────────────────────────────────────────
 function renderList(){
   const all=filteredTopTasks();
-  // ⑤ 完了済みを最下部に：未完了と完了を分ける
-  const active=all.filter(t=>!(t.done&&(!t.isGroup||t.children.every(cid=>{const c=tasks.find(x=>x.id===cid);return !c||c.done;}))));
   const done=all.filter(t=>t.done||(t.isGroup&&t.children.length>0&&t.children.every(cid=>{const c=tasks.find(x=>x.id===cid);return !c||c.done;})));
   const activeOnly=all.filter(t=>!done.includes(t));
 
   document.getElementById('list-todo').innerHTML=
     `<div class="section-label">進行中 <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${activeOnly.length}件)</span></div>
     <div class="task-list">${activeOnly.length?activeOnly.map(t=>t.isGroup?groupBlockHTML(t):taskCardHTML(t,false)).join(''):'<div class="empty"><div class="empty-icon">✓</div>進行中のタスクはありません</div>'}</div>`;
+
+  // メンバー管理を未完了・完了の間に表示
+  renderTeamInline();
+
   const dd=document.getElementById('list-done');
   if(done.length){
     dd.innerHTML=`<div class="section-label done-toggle${doneCollapsed?' collapsed':''}" onclick="toggleDoneSection()">完了済み <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${done.length}件)</span><span class="arrow"> ▾</span></div>
@@ -938,25 +1037,21 @@ function renderGantt(){
   if(!tasks.length){root.innerHTML='<div class="empty"><div class="empty-icon">▦</div>タスクがありません</div>';return;}
   const td=todayStr(),tdMs=new Date(td).getTime();
 
-  // 全タスクの開始・終了日を含む範囲＋前後に余白
   const allDates=tasks.flatMap(t=>[new Date(t.start),new Date(t.end)]);
   const minD=new Date(Math.min(...allDates.map(d=>d.getTime()),tdMs-86400000*7));
   const maxD=new Date(Math.max(...allDates.map(d=>d.getTime()),tdMs+86400000*30));
-  // 週境界に合わせる
   while(minD.getDay()!==0)minD.setDate(minD.getDate()-1);
   while(maxD.getDay()!==6)maxD.setDate(maxD.getDate()+1);
   const totalDays=Math.round((maxD-minD)/86400000)+1;
 
-  // 1日の幅：画面に35日分が収まるサイズを基準に固定
   const paneW=document.getElementById('pane-gantt').clientWidth;
   const fixedCols=22+colName+colMember+40;
   const availW=paneW-fixedCols;
-  const DW=Math.max(16,Math.floor(availW/35)); // 常に35日分の幅を1画面に
+  const DW=Math.max(16,Math.floor(availW/35));
   const BAW=totalDays*DW;
   const todayIdx=Math.round((new Date(td)-minD)/86400000);
   const todayLeft=todayIdx*DW+DW/2;
 
-  // ⑧ 日背景・ラベル：インデックスをきっちりDW単位で計算
   let dayBgs='',dayLabels='';
   for(let i=0;i<totalDays;i++){
     const d=new Date(minD.getTime()+i*86400000);
@@ -991,7 +1086,6 @@ function renderGantt(){
   }
 
   const tops=tasks.filter(t=>!t.parentId);
-  // ⑤ ガントでも完了済みを最下部に
   const activeTops=tops.filter(t=>!isTopDone(t));
   const doneTops=tops.filter(t=>isTopDone(t));
   const orderedTops=[...activeTops,...doneTops];
@@ -1004,7 +1098,6 @@ function renderGantt(){
       const isOpen=!collapsedGroups.has(t.id);
       const anyOver=children.some(c=>!c.done&&c.end<td)||(!t.done&&t.end<td);
       const grpDone=isTopDone(t);
-      // group header bar: thin spanning bar
       const gs=new Date(t.start),ge=new Date(t.end);
       const gSIdx=Math.max(0,Math.round((gs-minD)/86400000));
       const gEIdx=Math.min(totalDays-1,Math.round((ge-minD)/86400000));
@@ -1042,33 +1135,52 @@ function renderGantt(){
     }
   });
 
-  root.innerHTML=`<div class="gantt-scroll">
-    <div style="display:flex;align-items:flex-end;margin-bottom:2px">
-      <div style="width:22px;flex-shrink:0"></div>
-      <div class="gantt-name-col-h" style="width:${colName}px">タスク名<div class="resize-handle" id="rh-name">⋮</div></div>
-      <div class="gantt-member-col-h" style="width:${colMember}px">関係者<div class="resize-handle" id="rh-member">⋮</div></div>
-      <div style="flex:none;width:${BAW}px;padding:0 0 4px">
-        <div class="day-label-row" style="width:${BAW}px;position:relative">${dayLabels}</div>
+  // ガント全体の幅（ヘッダー + バーエリア）
+  const totalW=22+colName+colMember+BAW;
+
+  root.innerHTML=`
+    <!-- 上部スクロールバー -->
+    <div class="gantt-scroll-top" id="gantt-scroll-top">
+      <div class="gantt-scroll-top-inner" style="width:${totalW}px"></div>
+    </div>
+    <!-- メインスクロール領域 -->
+    <div class="gantt-scroll-main" id="gantt-scroll-main">
+      <div style="min-width:${totalW}px">
+        <div style="display:flex;align-items:flex-end;margin-bottom:2px">
+          <div style="width:22px;flex-shrink:0"></div>
+          <div class="gantt-name-col-h" style="width:${colName}px">タスク名<div class="resize-handle" id="rh-name">⋮</div></div>
+          <div class="gantt-member-col-h" style="width:${colMember}px">関係者<div class="resize-handle" id="rh-member">⋮</div></div>
+          <div style="flex:none;width:${BAW}px;padding:0 0 4px">
+            <div class="day-label-row" style="width:${BAW}px;position:relative">${dayLabels}</div>
+          </div>
+        </div>
+        <div id="gantt-rows">${rowsHTML}</div>
       </div>
     </div>
-    <div id="gantt-rows">${rowsHTML}</div>
-  </div>
-  <div style="margin-top:8px;font-size:10px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-    <span style="color:var(--red);display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:1.5px;background:var(--red)"></span>今日</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:10px;background:var(--sat-bg);border:.5px solid #bcd"></span>土曜</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:10px;background:var(--sun-bg);border:.5px solid #fcb"></span>日曜・祝日</span>
-    <span style="color:var(--text3);margin-left:4px">作業量：</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:42px;background:#888;border-radius:5px;opacity:.7"></span>🔴 重い</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:28px;background:#888;border-radius:4px;opacity:.7"></span>🟡 普通</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:16px;background:#888;border-radius:3px;opacity:.7"></span>🟢 軽い</span>
-  </div>`;
-  initGanttDrag();initResizeHandles();
-  // 初期表示：「今日」が左から1/4の位置に来るようスクロール
-  const scrollEl=root.querySelector('.gantt-scroll');
-  if(scrollEl){
+    <div style="margin-top:8px;font-size:10px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;flex-shrink:0">
+      <span style="color:var(--red);display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:1.5px;background:var(--red)"></span>今日</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:10px;background:var(--sat-bg);border:.5px solid #bcd"></span>土曜</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:10px;background:var(--sun-bg);border:.5px solid #fcb"></span>日曜・祝日</span>
+      <span style="color:var(--text3);margin-left:4px">作業量：</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:42px;background:#888;border-radius:5px;opacity:.7"></span>🔴 重い</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:28px;background:#888;border-radius:4px;opacity:.7"></span>🟡 普通</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:16px;background:#888;border-radius:3px;opacity:.7"></span>🟢 軽い</span>
+    </div>`;
+
+  // 上部スクロールバーとメインを同期
+  const topBar=document.getElementById('gantt-scroll-top');
+  const mainArea=document.getElementById('gantt-scroll-main');
+  if(topBar&&mainArea){
+    let syncing=false;
+    topBar.addEventListener('scroll',()=>{if(syncing)return;syncing=true;mainArea.scrollLeft=topBar.scrollLeft;syncing=false;});
+    mainArea.addEventListener('scroll',()=>{if(syncing)return;syncing=true;topBar.scrollLeft=mainArea.scrollLeft;syncing=false;});
+    // 初期スクロール位置：今日が左から1/4
     const scrollTo=Math.max(0,todayLeft-(availW*0.25));
-    scrollEl.scrollLeft=scrollTo;
+    mainArea.scrollLeft=scrollTo;
+    topBar.scrollLeft=scrollTo;
   }
+
+  initGanttDrag();initResizeHandles();
 }
 
 function isTopDone(t){
@@ -1088,7 +1200,6 @@ function toggleGanttGroup(id){
 function initGanttDrag(){
   const container=document.getElementById('gantt-rows');if(!container)return;
   let dragId=null,dragParent=null,dragIsGroup=false;
-  // child rows
   container.querySelectorAll('.gantt-row').forEach(row=>{
     row.addEventListener('dragstart',e=>{
       dragId=parseInt(row.dataset.id);
@@ -1125,7 +1236,6 @@ function initGanttDrag(){
       await save();render();
     });
   });
-  // group headers
   container.querySelectorAll('.gantt-group-hdr').forEach(hdr=>{
     hdr.setAttribute('draggable','true');
     hdr.addEventListener('dragstart',e=>{
@@ -1187,14 +1297,12 @@ function renderCalendar(){
   const dim=new Date(calYear,calMonth+1,0).getDate();
   const td=todayStr();
   const showDone=document.getElementById('cal-show-done')?.checked||false;
-  // タスクマップ：期限日ベースで表示（全期間ではなく期限日のみ）
   const taskMap={};
   tasks.filter(t=>!t.isGroup&&(showDone||!t.done)).forEach((t,i)=>{
     const ds=t.end;
     if(!taskMap[ds])taskMap[ds]=[];
     taskMap[ds].push({t,i});
   });
-  // 期限順にソート
   Object.keys(taskMap).forEach(ds=>{
     taskMap[ds].sort((a,b)=>a.t.end.localeCompare(b.t.end));
   });
@@ -1230,7 +1338,6 @@ function calCell(d,ds,taskMap,td){
   return h;
 }
 function calAddTask(ds){
-  // 日付クリックでタスク追加モーダルを開き、期限をその日に設定
   openModal();
   setTimeout(()=>{
     document.getElementById('f-end').value=ds;
@@ -1258,13 +1365,11 @@ async function deleteMemo(id){
 }
 async function memoToTask(id){
   const m=memos.find(m=>m.id===id);if(!m)return;
-  // メモの内容をタスク名に入れてモーダルを開く
   openModal();
   setTimeout(()=>{
     document.getElementById('f-name').value=m.text.split('\n')[0].slice(0,50);
     document.getElementById('f-memo').value=m.text;
   },50);
-  // メモを削除
   memos=memos.filter(m=>m.id!==id);
   await save();renderMemos();
 }
@@ -1311,108 +1416,15 @@ function startEditMemo(id){
   ta.addEventListener('keydown',e=>{if(e.key==='Escape')renderMemos();if(e.key==='Enter'&&e.ctrlKey)finish();});
 }
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
-
-// ── メンバー管理 ──────────────────────────────────────────
-// 火曜日始まりの週のキーを返す（例: 2026-04-07）
-function getWeekKey(date){
-  const d=new Date(date||Date.now());
-  const dow=d.getDay(); // 0=日,1=月,...,6=土
-  // 直近の火曜日を求める（今日が火曜以降なら今週の火曜、月曜・日曜なら前週の火曜）
-  const diff=(dow===0)?-6:(dow===1)?-7:-(dow-2); // 火曜=0差
-  const tue=new Date(d);tue.setDate(d.getDate()+diff);
-  return dStr(tue);
-}
-function getWeekLabel(tueDStr){
-  const tue=new Date(tueDStr);
-  const mon=new Date(tue);mon.setDate(tue.getDate()+6);
-  return `${tue.getMonth()+1}/${tue.getDate()}（火）〜${mon.getMonth()+1}/${mon.getDate()}（月）`;
-}
-function isCurrentWeek(tueDStr){return getWeekKey()===tueDStr;}
-
-async function addMember(){
-  const inp=document.getElementById('member-name-input');
-  const name=inp.value.trim();if(!name)return;
-  const weekKey=getWeekKey();
-  members.push({id:nextMemberId++,name,weeks:{[weekKey]:''},createdAt:Date.now()});
-  inp.value='';
-  await save();renderTeam();
-}
-async function deleteMember(id){
-  confirmDelete(`「${members.find(m=>m.id===id)?.name}」を削除しますか？（週次メモも全て削除されます）`,async()=>{
-    members=members.filter(m=>m.id!==id);await save();renderTeam();
-  });
-}
-// 週次メモ保存（自動保存）
-let saveTimer={};
-function onWeekNoteChange(memberId,weekKey,val){
-  const m=members.find(m=>m.id===memberId);if(!m)return;
-  if(!m.weeks)m.weeks={};
-  m.weeks[weekKey]=val;
-  clearTimeout(saveTimer[memberId+'_'+weekKey]);
-  saveTimer[memberId+'_'+weekKey]=setTimeout(async()=>{
-    await save();
-    // 保存完了の視覚フィードバック
-    const ta=document.getElementById(`wn-${memberId}-${weekKey}`);
-    if(ta){ta.classList.add('week-notes-saved');setTimeout(()=>ta.classList.remove('week-notes-saved'),1000);}
-  },800);
-}
-async function addWeekToMember(memberId){
-  const m=members.find(m=>m.id===memberId);if(!m)return;
-  if(!m.weeks)m.weeks={};
-  // 最も古い週の前の週を追加
-  const keys=Object.keys(m.weeks).sort();
-  const oldest=keys[0]||getWeekKey();
-  const prev=new Date(oldest);prev.setDate(prev.getDate()-7);
-  const prevKey=dStr(prev);
-  if(!m.weeks[prevKey])m.weeks[prevKey]='';
-  await save();renderTeam();
-}
-
-function renderTeam(){
-  const root=document.getElementById('team-root');if(!root)return;
-  if(!members.length){
-    root.innerHTML='<div class="empty"><div class="empty-icon">👥</div>メンバーを追加してください</div>';return;
-  }
-  const currentWeekKey=getWeekKey();
-  root.innerHTML=members.map(m=>{
-    if(!m.weeks)m.weeks={};
-    // 今週のキーがなければ追加
-    if(!m.weeks[currentWeekKey])m.weeks[currentWeekKey]='';
-    // 週を降順（新しい順）で表示
-    const weekKeys=Object.keys(m.weeks).sort().reverse();
-    const weeksHTML=weekKeys.map(wk=>{
-      const isCur=isCurrentWeek(wk);
-      const safeId=`${m.id}-${wk}`;
-      return `<div class="week-block">
-        <div class="week-label${isCur?' current-week':''}">
-          ${getWeekLabel(wk)}
-          ${isCur?'<span class="wk-badge">今週</span>':''}
-        </div>
-        <textarea class="week-notes" id="wn-${safeId}"
-          placeholder="今週のタスク・メモを入力..."
-          oninput="onWeekNoteChange(${m.id},'${wk}',this.value)"
-        >${escHtml2(m.weeks[wk]||'')}</textarea>
-      </div>`;
-    }).join('');
-    return `<div class="member-block">
-      <div class="member-hdr">
-        <div class="member-hdr-name">👤 ${m.name}</div>
-        <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="addWeekToMember(${m.id})">＋ 過去の週を追加</button>
-        <button class="icon-btn del" onclick="deleteMember(${m.id})" title="削除">🗑</button>
-      </div>
-      ${weeksHTML}
-    </div>`;
-  }).join('');
-}
 function escHtml2(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-function render(){renderStats();renderList();renderGantt();
+function render(){
+  renderStats();renderList();renderGantt();
   if(document.getElementById('tab-cal').classList.contains('active'))renderCalendar();
   if(document.getElementById('tab-memo').classList.contains('active'))renderMemos();
-  if(document.getElementById('tab-team').classList.contains('active'))renderTeam();
 }
 
-// ── onclick用にwindowへ登録（moduleスコープ対策）──────
+// ── window登録 ──────────────────────────────────────
 window.openModal=openModal;
 window.closeModal=closeModal;
 window.saveTask=saveTask;
@@ -1439,11 +1451,12 @@ window.addMember=addMember;
 window.deleteMember=deleteMember;
 window.onWeekNoteChange=onWeekNoteChange;
 window.addWeekToMember=addWeekToMember;
-// メモ入力欄でCtrl+Enterで追加
+window.toggleMemberInline=toggleMemberInline;
+window.toggleTeamSection=toggleTeamSection;
+
 document.getElementById('memo-input').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();addMemo();}
 });
-
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeModal();closeConfirm();}
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openModal();}
