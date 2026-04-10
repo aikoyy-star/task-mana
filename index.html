@@ -63,7 +63,7 @@ header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(-
 .tag.medium{background:var(--amber-bg);color:var(--amber);}
 .tag.low{background:var(--green-bg);color:var(--green);}
 
-/* Gantt Scroll */
+/* Gantt Chart Upper Scroll */
 .gantt-scroll-wrapper{width:100%;overflow-x:auto;height:12px;margin-bottom:4px;border-radius:6px;}
 .gantt-scroll-content{height:1px;}
 .gantt-outer{position:relative;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow);}
@@ -87,7 +87,7 @@ header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(-
 .member-name{font-weight:700;font-size:15px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
 .member-week-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:13px;min-height:60px;resize:none;font-family:inherit;}
 
-/* Modal & Overlay */
+/* Modals */
 .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;}
 .modal{background:var(--surface);width:100%;max-width:500px;border-radius:var(--radius-lg);padding:32px;box-shadow:0 20px 40px rgba(0,0,0,0.2);position:relative;}
 .form-group{margin-bottom:20px;}
@@ -101,9 +101,6 @@ header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(-
 .memo-card{background:var(--amber-bg);padding:16px;border-radius:var(--radius);position:relative;min-height:120px;}
 .memo-content{font-size:14px;white-space:pre-wrap;}
 .memo-date{font-size:10px;color:var(--amber);margin-top:12px;}
-
-::-webkit-scrollbar{width:8px;height:8px;}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
 </style>
 </head>
 <body>
@@ -138,7 +135,7 @@ header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(-
       <div class="section-header"><h2>👥 メンバー（週報・管理）</h2><span class="count" id="count-members">0</span></div>
       <div class="member-container">
         <div style="margin-bottom:16px; display:flex; gap:10px;">
-          <input type="text" id="member-name-input" class="form-control" placeholder="メンバー名を入力（最大5人）" style="max-width:240px; padding:8px;">
+          <input type="text" id="member-name-input" class="form-control" placeholder="メンバー名を入力" style="max-width:240px; padding:8px;">
           <button class="btn-primary" onclick="addMember()" style="padding:8px 12px;">追加</button>
         </div>
         <div id="member-grid" class="member-grid"></div>
@@ -164,7 +161,7 @@ header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(-
 
 <div class="overlay" id="overlay">
   <div class="modal">
-    <h3 style="margin-bottom:24px;">タスク作成/編集</h3>
+    <h3 style="margin-bottom:24px;">タスク入力</h3>
     <input type="hidden" id="task-id">
     <div class="form-group"><label>タスク名</label><input type="text" id="task-title" class="form-control"></div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
@@ -185,19 +182,16 @@ header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(-
 </div>
 
 <script>
-// --- Data Management (復元機能付き) ---
-let tasks = JSON.parse(localStorage.getItem('tasks_v2') || localStorage.getItem('tasks') || '[]');
+// --- Data Management (修正版: todo_tasks_v3を優先読み込み) ---
+// 山崎様の環境で見つかった 'todo_tasks_v3' を最優先で読み込みます
+let tasks = JSON.parse(localStorage.getItem('todo_tasks_v3') || localStorage.getItem('tasks_v2') || localStorage.getItem('tasks') || '[]');
 let memos = JSON.parse(localStorage.getItem('memos_v2') || localStorage.getItem('memos') || '[]');
 let members = JSON.parse(localStorage.getItem('members_v2') || localStorage.getItem('members') || '[]');
 let collapsed = { pending: false, done: true };
 
-// 初期読み込み時に新キーへ移行
-localStorage.setItem('tasks_v2', JSON.stringify(tasks));
-localStorage.setItem('memos_v2', JSON.stringify(memos));
-localStorage.setItem('members_v2', JSON.stringify(members));
-
+// 今後は 'todo_tasks_v3' を共通の保存先として固定します
 function saveAndRender() {
-  localStorage.setItem('tasks_v2', JSON.stringify(tasks));
+  localStorage.setItem('todo_tasks_v3', JSON.stringify(tasks));
   localStorage.setItem('memos_v2', JSON.stringify(memos));
   localStorage.setItem('members_v2', JSON.stringify(members));
   render();
@@ -269,7 +263,7 @@ function deleteMember(id) {
 
 function onMemberNoteChange(id, val) {
   const idx = members.findIndex(m => m.id == id);
-  if(idx > -1) { members[idx].weekNote = val; localStorage.setItem('members_v2', JSON.stringify(members)); }
+  if(idx > -1) { members[idx].weekNote = val; saveAndRender(); }
 }
 
 function addMemo() {
@@ -281,7 +275,6 @@ function addMemo() {
 }
 
 function deleteMemo(id) { memos = memos.filter(m => m.id != id); saveAndRender(); }
-
 function toggleGroup(key) { collapsed[key] = !collapsed[key]; render(); }
 
 function render() {
@@ -294,7 +287,6 @@ function render() {
   document.getElementById('arrow-pending').innerText = collapsed.pending ? '▶' : '▼';
   document.getElementById('content-done').style.display = collapsed.done ? 'none' : 'block';
   document.getElementById('arrow-done').innerText = collapsed.done ? '▶' : '▼';
-
   renderTaskList(pending, 'list-pending');
   renderTaskList(done, 'list-done');
   if(!collapsed.pending) renderGantt(pending, 'gantt-pending');
@@ -318,11 +310,7 @@ function renderTaskList(items, elementId) {
 
 function renderGantt(items, elementId) {
   const container = document.getElementById(elementId);
-  if(items.length === 0) { 
-    container.innerHTML = ''; 
-    document.getElementById('gantt-top-scroll').style.display = 'none'; 
-    return; 
-  }
+  if(items.length === 0) { container.innerHTML = ''; document.getElementById('gantt-top-scroll').style.display = 'none'; return; }
   document.getElementById('gantt-top-scroll').style.display = 'block';
   const startDates = items.map(i => new Date(i.start));
   const endDates = items.map(i => new Date(i.end));
@@ -330,13 +318,11 @@ function renderGantt(items, elementId) {
   const maxDate = new Date(Math.max(...endDates)); maxDate.setDate(maxDate.getDate() + 10);
   const daysCount = Math.ceil((maxDate - minDate) / (1000*60*60*24));
   const dayWidth = 36; const totalWidth = daysCount * dayWidth;
-
   const topScroll = document.getElementById('gantt-top-scroll');
   const bottomContainer = document.getElementById('gantt-container-pending');
   document.getElementById('gantt-top-content').style.width = (totalWidth + 220) + 'px';
   topScroll.onscroll = () => { bottomContainer.scrollLeft = topScroll.scrollLeft; };
   bottomContainer.onscroll = () => { topScroll.scrollLeft = bottomContainer.scrollLeft; };
-
   let html = `<div style="width:${totalWidth + 220}px;"><div class="gantt-header"><div class="gantt-label-col">タスク名</div><div class="gantt-days">`;
   for(let i=0; i<daysCount; i++) {
     const d = new Date(minDate); d.setDate(d.getDate() + i);
