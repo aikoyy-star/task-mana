@@ -41,7 +41,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .pane-gantt{background:var(--surface);overflow:hidden;padding:1rem 1.25rem;display:flex;flex-direction:column}
 .pane-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
 .pane-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em}
-/* add button - top */
 .add-btn-top{margin-bottom:.75rem}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
 .btn-primary{background:var(--text);color:#fff;width:100%;justify-content:center}
@@ -50,6 +49,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .btn-ghost:hover{background:var(--surface2);color:var(--text)}
 .btn-danger{background:var(--red-bg);color:var(--red);border:none}
 .btn-danger:hover{background:#f5d0cc}
+.btn-member-task{background:var(--accent-bg);color:var(--accent);border:.5px solid var(--accent);width:100%;justify-content:center;margin-bottom:.75rem}
+.btn-member-task:hover{background:#d0dff5}
+.btn-member-task:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
 .filter-bar{display:flex;gap:5px;margin-bottom:.75rem;flex-wrap:wrap}
 .filter-bar input{flex:1;min-width:100px;padding:5px 9px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit}
 .filter-bar input:focus{outline:none;border-color:var(--accent)}
@@ -60,10 +62,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .group-header{background:var(--accent-bg);padding:6px 8px;display:flex;align-items:center;gap:6px;transition:background .12s}
 .group-header.has-overdue{background:var(--red-bg);border-left:3px solid var(--red)}
 .group-header.done-grp{background:var(--surface2)}
-/* toggle button - clear separation */
 .grp-toggle-btn{width:26px;height:26px;border-radius:6px;border:.5px solid var(--border2);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text2);flex-shrink:0;transition:background .12s}
 .grp-toggle-btn:hover{background:var(--surface2)}
-/* group clickable area for edit */
 .group-edit-area{flex:1;min-width:0;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:1px}
 .group-edit-area:hover .group-name{color:var(--accent)}
 .group-name{font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%}
@@ -120,34 +120,35 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .empty{text-align:center;padding:2rem 1rem;color:var(--text3);font-size:13px}
 .empty-icon{font-size:26px;margin-bottom:6px}
 
-/* ── メンバー（一覧内埋め込み版） ── */
-.team-inline-section{margin-bottom:6px}
-.team-inline-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.team-inline-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:6px;flex:1}
-.team-inline-title::after{content:'';flex:1;height:.5px;background:var(--border)}
-.team-inline-toggle{cursor:pointer;user-select:none}
-.team-inline-toggle .arrow{font-size:10px;transition:transform .2s}
-.team-inline-toggle.collapsed .arrow{transform:rotate(-90deg)}
-.team-inline-body{display:flex;flex-direction:column;gap:8px}
-.member-inline-block{background:var(--surface);border-radius:var(--radius-lg);border:.5px solid var(--border);overflow:hidden}
-.member-inline-hdr{background:var(--accent-bg);padding:7px 10px;display:flex;align-items:center;gap:6px;border-bottom:.5px solid var(--border);cursor:pointer;user-select:none;transition:background .12s}
-.member-inline-hdr:hover{background:#dce6f5}
-.member-inline-name{font-size:12px;font-weight:700;color:var(--accent);flex:1}
-.member-inline-body{padding:8px 10px;display:flex;flex-direction:column;gap:6px}
-.week-block-inline{display:flex;flex-direction:column;gap:4px}
-.week-label-inline{font-size:10px;font-weight:700;color:var(--text3);display:flex;align-items:center;gap:5px}
-.week-label-inline.current-week{color:var(--accent)}
-.wk-badge{font-size:9px;background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px;font-weight:500}
-.week-notes-inline{width:100%;min-height:56px;padding:6px 8px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:12px;font-family:inherit;resize:vertical;transition:border-color .15s;line-height:1.6}
-.week-notes-inline:focus{outline:none;border-color:var(--accent);background:var(--surface)}
-.week-notes-saved{border-color:var(--green)!important}
-.member-add-inline{display:flex;gap:6px;align-items:center;margin-bottom:2px}
-.member-add-inline input{flex:1;padding:5px 8px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit}
-.member-add-inline input:focus{outline:none;border-color:var(--accent)}
+/* ── メンバー（一覧内インライン表示版） ── */
+.member-list-block{margin-bottom:6px;border-radius:var(--radius-lg);overflow:hidden;border:1.5px solid #6a9fd8;background:var(--surface)}
+.member-list-hdr{background:#eef4fb;padding:7px 10px;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;transition:background .12s}
+.member-list-hdr:hover{background:#dce9f5}
+.member-list-name{font-size:13px;font-weight:700;color:#3a6fa5;flex:1}
+.member-list-body{padding:8px 10px;border-top:1px solid rgba(106,159,216,.2)}
+.member-list-tasks{font-size:12px;color:var(--text2);white-space:pre-wrap;word-break:break-all;line-height:1.7;min-height:20px}
+.member-list-empty{font-size:11px;color:var(--text3);font-style:italic}
+.member-list-week{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px}
+.member-list-actions{display:flex;gap:4px;margin-top:6px}
+.btn-week-nav{font-size:10px;padding:3px 8px;border-radius:6px;border:.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;font-family:inherit;transition:background .12s}
+.btn-week-nav:hover{background:var(--surface2)}
+.btn-week-nav.next{background:var(--accent-bg);color:var(--accent);border-color:var(--accent)}
+.btn-week-nav.next:hover{background:#d0dff5}
+
+/* ── メンバータブ ── */
+.member-tab-view{flex:1;overflow-y:auto;padding:1.25rem 1.5rem;background:var(--bg);display:flex;flex-direction:column;gap:0}
+.member-reg-section{background:var(--surface);border-radius:var(--radius-lg);border:.5px solid var(--border);padding:1.25rem;margin-bottom:1rem}
+.member-reg-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.member-reg-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.member-reg-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:var(--radius);border:.5px solid var(--border)}
+.member-reg-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.member-reg-name{flex:1;font-size:13px;font-weight:500}
+.member-reg-add{display:flex;gap:8px;align-items:center}
+.member-reg-add input{flex:1;padding:8px 12px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;transition:border-color .15s}
+.member-reg-add input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
 
 /* gantt */
 .gantt-scroll-wrapper{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
-/* スクロールバーを上部に表示するためのトリック */
 .gantt-scroll-top{overflow-x:scroll;overflow-y:hidden;height:16px;flex-shrink:0}
 .gantt-scroll-top::-webkit-scrollbar{height:6px}
 .gantt-scroll-top::-webkit-scrollbar-track{background:var(--surface2);border-radius:3px}
@@ -190,6 +191,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .day-label-text.sat{color:#2563eb}.day-label-text.sun{color:var(--red)}.day-label-text.today-lbl{font-weight:700;color:var(--red)}
 .resize-handle{width:5px;flex-shrink:0;cursor:col-resize;background:transparent;border-left:.5px solid var(--border2);align-self:stretch;display:flex;align-items:center;justify-content:center;color:var(--border2);font-size:8px;transition:background .12s}
 .resize-handle:hover{background:var(--accent-bg)}
+/* gantt member row */
+.gantt-member-wrap{margin-bottom:3px;border:1.5px solid #6a9fd8;border-radius:7px;overflow:hidden}
+.gantt-member-hdr{display:flex;align-items:center;background:#eef4fb;cursor:pointer;user-select:none}
+.gantt-member-hdr:hover{background:#dce9f5}
 /* calendar */
 .cal-view{flex:1;overflow:auto;padding:1.25rem 1.5rem;background:var(--bg)}
 .cal-header{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
@@ -199,7 +204,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)}
 .cal-day-header{background:var(--surface);text-align:center;padding:6px 2px;font-size:11px;font-weight:700;color:var(--text2)}
 .cal-day-header.sun{color:var(--red)}.cal-day-header.sat{color:#2563eb}
-.cal-cell{background:var(--surface);min-height:90px;padding:4px;vertical-align:top}
+.cal-cell{background:var(--surface);min-height:80px;padding:4px;vertical-align:top;cursor:pointer;transition:background .1s}
+.cal-cell:hover{background:#f5f4f0}
 .cal-cell.other-month{background:#f9f8f5;opacity:.6}
 .cal-cell.today-cell{background:#fff8f0}
 .cal-cell.sat-cell{background:#f0f4ff}.cal-cell.sun-cell,.cal-cell.hol-cell{background:#fff0f0}
@@ -207,7 +213,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .cal-cell.today-cell .cal-date-num{background:var(--red);color:#fff}
 .cal-cell.sat-cell .cal-date-num{color:#2563eb}
 .cal-cell.sun-cell .cal-date-num,.cal-cell.hol-cell .cal-date-num{color:var(--red)}
-.cal-task-chip{font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;cursor:pointer;font-weight:500}
+.cal-task-chip{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;cursor:pointer;font-weight:500;display:block}
 .cal-task-chip:hover{filter:brightness(.88)}
 .cal-hol-label{font-size:9px;color:var(--red);margin-bottom:2px;font-weight:500}
 /* modal */
@@ -233,6 +239,20 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .toggle-switch input:checked+.toggle-slider:before{transform:translateX(18px)}
 .toggle-label{font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;user-select:none}
 .toggle-label.active{color:var(--accent)}
+/* メンバー選択モーダル */
+.member-select-modal{max-width:360px}
+.member-select-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem}
+.member-select-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:var(--radius);border:.5px solid var(--border2);cursor:pointer;transition:all .15s}
+.member-select-item:hover{background:var(--accent-bg);border-color:var(--accent)}
+.member-select-icon{font-size:18px}
+.member-select-name{font-size:14px;font-weight:500;flex:1}
+/* メンバータスク入力モーダル */
+.member-task-modal{max-width:480px}
+.member-task-header{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#eef4fb;border-radius:var(--radius);margin-bottom:1rem;border:.5px solid #6a9fd8}
+.member-task-who{font-size:15px;font-weight:700;color:#3a6fa5}
+.member-task-week{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+.member-task-textarea{width:100%;min-height:120px;padding:10px 12px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;resize:vertical;transition:border-color .15s;line-height:1.75}
+.member-task-textarea:focus{outline:none;border-color:#6a9fd8;background:var(--surface)}
 /* パスワード画面 */
 .pw-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;flex-direction:column}
 .pw-card{background:var(--surface);border-radius:var(--radius-lg);border:.5px solid var(--border);padding:2.5rem 2rem;width:100%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,.1);display:flex;flex-direction:column;align-items:center;gap:1rem}
@@ -260,10 +280,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .memo-to-task-btn:hover{background:#d0dff5}
 /* カレンダー改善 */
 .cal-done-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-left:auto}
-.cal-cell{background:var(--surface);min-height:80px;padding:4px;vertical-align:top;cursor:pointer;transition:background .1s}
-.cal-cell:hover{background:#f5f4f0}
-.cal-task-chip{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;cursor:pointer;font-weight:500;display:block}
-.cal-task-chip:hover{filter:brightness(.88)}
 /* ── スマホ対応 ── */
 @media (max-width:768px){
   body{overflow:auto}
@@ -360,6 +376,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <button class="tab-btn active" onclick="switchTab('main',this)">一覧 ＆ ガント</button>
   <button class="tab-btn" onclick="switchTab('cal',this)">カレンダー</button>
   <button class="tab-btn" onclick="switchTab('memo',this)">メモ</button>
+  <button class="tab-btn" onclick="switchTab('member',this)">メンバー</button>
 </div>
 <div class="statsbar">
   <div class="stat-pill"><div><div class="stat-pill-val" id="s-total">0</div><div class="stat-pill-lbl">全タスク</div></div></div>
@@ -387,9 +404,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
           <option value="name">名前順</option>
         </select>
       </div>
+      <!-- メンバータスク入力ボタン -->
+      <button class="btn btn-member-task" id="btn-member-task" onclick="openMemberSelect()" disabled>👥 メンバータスクを入力</button>
       <div id="list-todo"></div>
-      <!-- メンバー管理セクション（未完了・完了タスクの間に配置） -->
-      <div id="list-team"></div>
+      <!-- メンバーの今週タスク（未完了・完了の間） -->
+      <div id="list-member-tasks"></div>
       <div id="list-done"></div>
     </div>
     <div class="pane-gantt" id="pane-gantt">
@@ -430,6 +449,23 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div id="memo-active-list" style="display:flex;flex-direction:column;gap:6px"></div>
     <div id="memo-done-section"></div>
+  </div>
+</div>
+
+<!-- メンバータブ -->
+<div class="tab-view" id="tab-member">
+  <div class="member-tab-view">
+    <div class="member-reg-section">
+      <div class="member-reg-title">👥 メンバー登録 <span style="font-size:11px;font-weight:400;color:var(--text3)">（最大5人）</span></div>
+      <div class="member-reg-list" id="member-reg-list"></div>
+      <div class="member-reg-add" id="member-reg-add">
+        <input type="text" id="member-reg-input" placeholder="メンバーの名前を入力..." onkeydown="if(event.key==='Enter')addMember()">
+        <button class="btn btn-primary" style="width:auto" onclick="addMember()">＋ 追加</button>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);text-align:center;padding:1rem">
+      メンバーを登録すると「一覧 ＆ ガント」タブの「メンバータスクを入力」ボタンが有効になります
+    </div>
   </div>
 </div>
 
@@ -477,6 +513,47 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     </div>
   </div>
 </div>
+
+<!-- メンバー選択モーダル -->
+<div class="overlay" id="member-select-overlay">
+  <div class="modal member-select-modal">
+    <div class="modal-header">
+      <h2>メンバーを選択</h2>
+      <button class="icon-btn" onclick="closeMemberSelect()" style="font-size:18px;width:30px;height:30px">×</button>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">タスクを入力するメンバーを選択してください</p>
+    <div class="member-select-list" id="member-select-list"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMemberSelect()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- メンバータスク入力モーダル -->
+<div class="overlay" id="member-task-overlay">
+  <div class="modal member-task-modal">
+    <div class="modal-header">
+      <h2 id="member-task-modal-title">メンバータスク入力</h2>
+      <button class="icon-btn" onclick="closeMemberTaskModal()" style="font-size:18px;width:30px;height:30px">×</button>
+    </div>
+    <div class="member-task-header">
+      <span style="font-size:18px">👤</span>
+      <div>
+        <div class="member-task-who" id="member-task-who"></div>
+        <div class="member-task-week" id="member-task-week"></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>今週のタスク</label>
+      <textarea class="member-task-textarea" id="member-task-input" placeholder="今週のタスクを入力してください...&#10;例：&#10;・資料作成&#10;・クライアント打ち合わせ&#10;・レポート提出"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMemberTaskModal()">キャンセル</button>
+      <button class="btn btn-primary" style="width:auto" onclick="saveMemberTask()">保存する</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="confirm-overlay">
   <div class="modal" style="max-width:340px">
     <div class="modal-header"><h2>確認</h2></div>
@@ -548,7 +625,7 @@ const db = getFirestore(fbApp);
 const DOC_REF = doc(db, 'taskapp', 'data');
 
 // ── 祝日 ──────────────────────────────────────────────
-const HOLIDAYS=new Set(['2024-01-01','2024-01-08','2024-02-11','2024-02-12','2024-02-23','2024-03-20','2024-04-29','2024-05-03','2024-05-04','2024-05-05','2024-05-06','2024-07-15','2024-08-11','2024-08-12','2024-09-16','2024-09-22','2024-09-23','2024-10-14','2024-11-03','2024-11-04','2024-11-23','2025-01-01','2025-01-13','2025-02-11','2025-02-23','2025-02-24','2025-03-20','2025-04-29','2025-05-03','2025-05-04','2025-05-05','2025-05-06','2025-07-21','2025-08-11','2025-09-15','2025-09-23','2025-10-13','2025-11-03','2025-11-23','2025-11-24','2026-01-01','2026-01-12','2026-02-11','2026-02-23','2026-03-20','2026-04-29','2026-05-03','2026-05-04','2026-05-05','2026-05-06','2026-07-20','2026-08-11','2026-09-21','2026-09-22','2026-09-23','2026-10-12','2026-11-03','2026-11-23']);
+const HOLIDAYS=new Set(['2024-01-01','2024-01-08','2024-02-11','2024-02-12','2024-02-23','2024-03-20','2024-04-29','2024-05-03','2024-05-04','2024-05-05','2024-05-06','2024-07-15','2024-08-11','2024-09-16','2024-09-22','2024-09-23','2024-10-14','2024-11-03','2024-11-04','2024-11-23','2025-01-01','2025-01-13','2025-02-11','2025-02-23','2025-02-24','2025-03-20','2025-04-29','2025-05-03','2025-05-04','2025-05-05','2025-05-06','2025-07-21','2025-08-11','2025-09-15','2025-09-23','2025-10-13','2025-11-03','2025-11-23','2025-11-24','2026-01-01','2026-01-12','2026-02-11','2026-02-23','2026-03-20','2026-04-29','2026-05-03','2026-05-04','2026-05-05','2026-05-06','2026-07-20','2026-08-11','2026-09-21','2026-09-22','2026-09-23','2026-10-12','2026-11-03','2026-11-23']);
 const HOL_NAMES={'2026-01-01':'元日','2026-01-12':'成人の日','2026-02-11':'建国記念の日','2026-02-23':'天皇誕生日','2026-03-20':'春分の日','2026-04-29':'昭和の日','2026-05-03':'憲法記念日','2026-05-04':'みどりの日','2026-05-05':'こどもの日','2026-05-06':'振替休日','2026-07-20':'海の日','2026-08-11':'山の日','2026-09-21':'敬老の日','2026-09-22':'国民の休日','2026-09-23':'秋分の日','2026-10-12':'スポーツの日','2026-11-03':'文化の日','2026-11-23':'勤労感謝の日'};
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const BAR_COLORS=['#2a5caa','#1a7a52','#c0532a','#9a3070','#6a4fb5','#0e7490','#b45309','#1e6b8a'];
@@ -565,11 +642,14 @@ function workdaysUntil(endDs){
 function calDaysUntil(endDs){return Math.round((new Date(endDs)-new Date(todayStr()))/86400000);}
 
 // ── Storage ───────────────────────────────────────────
-let tasks=[],memos=[],members=[],nextId=1,nextMemoId=1,nextMemberId=1,editId=null,editParentId=null,doneCollapsed=false,teamCollapsed=false;
+let tasks=[],memos=[],members=[],nextId=1,nextMemoId=1,nextMemberId=1,editId=null,editParentId=null,doneCollapsed=false;
 let colName=160,colMember=80;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const collapsedGroups=new Set();
-const collapsedMembers=new Set();
+
+// ── メンバータスク入力用state ──────────────────────────
+let memberTaskTargetId=null; // 入力対象のメンバーID
+let memberTaskTargetWeekKey=null; // 入力対象の週キー
 
 function showLoading(msg){
   const el=document.getElementById('loading-overlay');
@@ -595,6 +675,8 @@ async function load(){
         if(t.parentId===undefined)t.parentId=null;
         if(!t.children)t.children=[];
       });
+      // membersのweeks初期化
+      members.forEach(m=>{if(!m.weeks)m.weeks={};});
     } else {
       const raw=localStorage.getItem('todo_tasks_v3')||localStorage.getItem('todo_tasks_v2');
       if(raw){
@@ -606,6 +688,7 @@ async function load(){
           if(t.parentId===undefined)t.parentId=null;
           if(!t.children)t.children=[];
         });
+        members.forEach(m=>{if(!m.weeks)m.weeks={};});
         await save();
       }
     }
@@ -641,6 +724,7 @@ function switchTab(name,el){
   el.classList.add('active');document.getElementById('tab-'+name).classList.add('active');
   if(name==='cal')renderCalendar();
   if(name==='memo')renderMemos();
+  if(name==='member')renderMemberTab();
 }
 function spSwitchTab(name,el){
   document.querySelectorAll('.sp-nav-btn').forEach(b=>b.classList.remove('active'));
@@ -880,13 +964,21 @@ function toggleGroup(id){
   render();
 }
 
-// ── メンバー（一覧内インライン）────────────────────────
+// ── 週キー計算（火曜日始まり） ─────────────────────────
 function getWeekKey(date){
   const d=new Date(date||Date.now());
   const dow=d.getDay();
-  const diff=(dow===0)?-6:(dow===1)?-7:-(dow-2);
+  // 火曜日(2)を週の開始とする
+  // 日=0→-5, 月=1→-6, 火=2→0, 水=3→-1, 木=4→-2, 金=5→-3, 土=6→-4
+  const diff=(dow===0)?-5:(dow===1)?-6:-(dow-2);
   const tue=new Date(d);tue.setDate(d.getDate()+diff);
   return dStr(tue);
+}
+function getWeekEnd(tueDStr){
+  // 月曜日（火曜から+6日）
+  const tue=new Date(tueDStr);
+  const mon=new Date(tue);mon.setDate(tue.getDate()+6);
+  return dStr(mon);
 }
 function getWeekLabel(tueDStr){
   const tue=new Date(tueDStr);
@@ -894,107 +986,187 @@ function getWeekLabel(tueDStr){
   return `${tue.getMonth()+1}/${tue.getDate()}（火）〜${mon.getMonth()+1}/${mon.getDate()}（月）`;
 }
 function isCurrentWeek(tueDStr){return getWeekKey()===tueDStr;}
+function getPrevWeekKey(tueDStr){
+  const d=new Date(tueDStr);d.setDate(d.getDate()-7);return dStr(d);
+}
+function getNextWeekKey(tueDStr){
+  const d=new Date(tueDStr);d.setDate(d.getDate()+7);return dStr(d);
+}
 
+// ── メンバー管理 ──────────────────────────────────────
 async function addMember(){
   if(members.length>=5){alert('メンバーは最大5人まで登録できます');return;}
-  const inp=document.getElementById('member-name-inline-input');
+  const inp=document.getElementById('member-reg-input');
   if(!inp)return;
   const name=inp.value.trim();if(!name)return;
-  const weekKey=getWeekKey();
-  members.push({id:nextMemberId++,name,weeks:{[weekKey]:''},createdAt:Date.now()});
+  members.push({id:nextMemberId++,name,weeks:{},createdAt:Date.now()});
   inp.value='';
-  await save();render();
+  await save();
+  renderMemberTab();
+  render();// メンバータスクボタンの有効化
 }
 async function deleteMember(id){
-  confirmDelete(`「${members.find(m=>m.id===id)?.name}」を削除しますか？`,async()=>{
-    members=members.filter(m=>m.id!==id);await save();render();
+  const m=members.find(m=>m.id===id);
+  confirmDelete(`「${m?.name}」を削除しますか？\n（登録情報が全て削除されます）`,async()=>{
+    members=members.filter(m=>m.id!==id);await save();renderMemberTab();render();
   });
 }
-let saveTimer={};
-function onWeekNoteChange(memberId,weekKey,val){
-  const m=members.find(m=>m.id===memberId);if(!m)return;
-  if(!m.weeks)m.weeks={};
-  m.weeks[weekKey]=val;
-  clearTimeout(saveTimer[memberId+'_'+weekKey]);
-  saveTimer[memberId+'_'+weekKey]=setTimeout(async()=>{
-    await save();
-    const ta=document.getElementById(`wn-${memberId}-${weekKey}`);
-    if(ta){ta.classList.add('week-notes-saved');setTimeout(()=>ta.classList.remove('week-notes-saved'),1000);}
-  },800);
+
+// ── メンバー選択モーダル ──────────────────────────────
+function openMemberSelect(){
+  if(!members.length)return;
+  const list=document.getElementById('member-select-list');
+  list.innerHTML=members.map(m=>`
+    <div class="member-select-item" onclick="selectMemberForTask(${m.id})">
+      <span class="member-select-icon">👤</span>
+      <span class="member-select-name">${escHtml2(m.name)}</span>
+      <span style="font-size:10px;color:var(--text3)">${m.weeks&&m.weeks[getWeekKey()]?'入力済み ✓':'未入力'}</span>
+    </div>`).join('');
+  document.getElementById('member-select-overlay').classList.add('open');
 }
-async function addWeekToMember(memberId){
-  const m=members.find(m=>m.id===memberId);if(!m)return;
-  if(!m.weeks)m.weeks={};
-  const keys=Object.keys(m.weeks).sort();
-  const oldest=keys[0]||getWeekKey();
-  const prev=new Date(oldest);prev.setDate(prev.getDate()-7);
-  const prevKey=dStr(prev);
-  if(!m.weeks[prevKey])m.weeks[prevKey]='';
-  await save();render();
+function closeMemberSelect(){
+  document.getElementById('member-select-overlay').classList.remove('open');
 }
-function toggleMemberInline(id){
-  if(collapsedMembers.has(id))collapsedMembers.delete(id);else collapsedMembers.add(id);
-  renderList();
-}
-function toggleTeamSection(){
-  teamCollapsed=!teamCollapsed;
-  const btn=document.querySelector('.team-inline-toggle');
-  const body=document.getElementById('team-inline-body-el');
-  if(btn)btn.classList.toggle('collapsed',teamCollapsed);
-  if(body)body.style.display=teamCollapsed?'none':'flex';
+function selectMemberForTask(memberId){
+  closeMemberSelect();
+  openMemberTaskModal(memberId,getWeekKey());
 }
 
-function renderTeamInline(){
-  const el=document.getElementById('list-team');if(!el)return;
+// ── メンバータスク入力モーダル ────────────────────────
+function openMemberTaskModal(memberId,weekKey){
+  memberTaskTargetId=memberId;
+  memberTaskTargetWeekKey=weekKey;
+  const m=members.find(m=>m.id===memberId);if(!m)return;
+  document.getElementById('member-task-modal-title').textContent=`${m.name} のタスク入力`;
+  document.getElementById('member-task-who').textContent=m.name;
+  document.getElementById('member-task-week').textContent=getWeekLabel(weekKey)+(isCurrentWeek(weekKey)?' ［今週］':'');
+  const existing=m.weeks&&m.weeks[weekKey]?m.weeks[weekKey]:'';
+  document.getElementById('member-task-input').value=existing;
+  document.getElementById('member-task-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('member-task-input').focus(),50);
+}
+function closeMemberTaskModal(){
+  document.getElementById('member-task-overlay').classList.remove('open');
+  memberTaskTargetId=null;memberTaskTargetWeekKey=null;
+}
+async function saveMemberTask(){
+  if(!memberTaskTargetId||!memberTaskTargetWeekKey)return;
+  const m=members.find(m=>m.id===memberTaskTargetId);if(!m)return;
+  if(!m.weeks)m.weeks={};
+  m.weeks[memberTaskTargetWeekKey]=document.getElementById('member-task-input').value.trim();
+  await save();
+  closeMemberTaskModal();
+  render();
+}
+
+// ── メンバータスク削除（その週のみ） ──────────────────
+function deleteMemberWeekTask(memberId,weekKey){
+  confirmDelete('この週のタスクを削除しますか？\n（メンバー登録は維持されます）',async()=>{
+    const m=members.find(m=>m.id===memberId);
+    if(m&&m.weeks){
+      m.weeks[weekKey]=''; // 空にする（枠は残す）
+    }
+    await save();render();
+  });
+}
+
+// ── 過去週へ移動（一覧） ──────────────────────────────
+function goToPastWeek(memberId,currentWeekKey){
+  const prevKey=getPrevWeekKey(currentWeekKey);
+  openMemberTaskModal(memberId,prevKey);
+}
+
+// ── 次週へ移動（一覧） ────────────────────────────────
+function goToNextWeek(memberId,currentWeekKey){
+  const nextKey=getNextWeekKey(currentWeekKey);
+  const isNext=nextKey>getWeekKey();
+  if(isNext){
+    if(!confirm('次週の情報に更新しますか？'))return;
+  }
+  openMemberTaskModal(memberId,nextKey);
+}
+
+// ── 一覧：メンバータスク表示 ──────────────────────────
+function renderMemberTasksInline(){
+  const el=document.getElementById('list-member-tasks');if(!el)return;
+  if(!members.length){el.innerHTML='';return;}
+
   const currentWeekKey=getWeekKey();
-  // 今週キーを確保
-  members.forEach(m=>{if(!m.weeks)m.weeks={};if(!m.weeks[currentWeekKey])m.weeks[currentWeekKey]='';});
-
-  const canAdd=members.length<5;
-  let membersHTML='';
+  let html='';
   members.forEach(m=>{
-    const isCollapsed=collapsedMembers.has(m.id);
-    const weekKeys=Object.keys(m.weeks).sort().reverse();
-    const weeksHTML=weekKeys.map(wk=>{
-      const isCur=isCurrentWeek(wk);
-      const safeId=`${m.id}-${wk}`;
-      return `<div class="week-block-inline">
-        <div class="week-label-inline${isCur?' current-week':''}">
-          ${getWeekLabel(wk)}
-          ${isCur?'<span class="wk-badge">今週</span>':''}
-        </div>
-        <textarea class="week-notes-inline" id="wn-${safeId}"
-          placeholder="今週のタスク・メモ..."
-          oninput="onWeekNoteChange(${m.id},'${wk}',this.value)"
-        >${escHtml2(m.weeks[wk]||'')}</textarea>
-      </div>`;
-    }).join('');
-    membersHTML+=`<div class="member-inline-block">
-      <div class="member-inline-hdr" onclick="toggleMemberInline(${m.id})">
-        <span style="font-size:10px;color:var(--text2);margin-right:2px">${isCollapsed?'▶':'▼'}</span>
-        <span class="member-inline-name">👤 ${m.name}</span>
-        <button class="btn btn-ghost" style="padding:2px 8px;font-size:10px;margin-right:4px" onclick="event.stopPropagation();addWeekToMember(${m.id})">＋ 過去週</button>
-        <button class="icon-btn del" onclick="event.stopPropagation();deleteMember(${m.id})" title="削除">🗑</button>
+    if(!m.weeks)m.weeks={};
+    const tasks_text=m.weeks[currentWeekKey]||'';
+    const hasTask=tasks_text.trim().length>0;
+    html+=`<div class="member-list-block" id="mblock-${m.id}">
+      <div class="member-list-hdr" onclick="toggleMemberBlock(${m.id})">
+        <span style="font-size:10px;color:#6a9fd8;width:14px" id="marrow-${m.id}">▼</span>
+        <span class="member-list-name">👤 ${escHtml2(m.name)}</span>
+        ${hasTask?'<span style="font-size:9px;background:#eef4fb;color:#3a6fa5;border-radius:999px;padding:1px 8px;font-weight:500">今週入力済み</span>':'<span style="font-size:9px;color:var(--text3)">未入力</span>'}
       </div>
-      <div id="member-inline-body-${m.id}" style="display:${isCollapsed?'none':'block'}">
-        <div class="member-inline-body">${weeksHTML}</div>
+      <div id="mbody-${m.id}" style="display:block">
+        <div class="member-list-body">
+          <div class="member-list-week">${getWeekLabel(currentWeekKey)} ［今週］</div>
+          ${hasTask
+            ?`<div class="member-list-tasks">${escHtml(tasks_text)}</div>`
+            :`<div class="member-list-empty">タスク未入力</div>`
+          }
+          <div class="member-list-actions">
+            <button class="btn-week-nav" onclick="goToPastWeek(${m.id},'${currentWeekKey}')">◀ 過去週</button>
+            <button class="btn-week-nav next" onclick="goToNextWeek(${m.id},'${currentWeekKey}')">次週へ ▶</button>
+            <button class="btn-week-nav" onclick="openMemberTaskModal(${m.id},'${currentWeekKey}')" style="margin-left:auto;background:var(--surface2);border-color:var(--border2)">✏ 編集</button>
+            <button class="icon-btn del" onclick="deleteMemberWeekTask(${m.id},'${currentWeekKey}')" title="この週のタスクを削除">🗑</button>
+          </div>
+        </div>
       </div>
     </div>`;
   });
 
-  el.innerHTML=`<div class="team-inline-section">
-    <div class="section-label team-inline-toggle${teamCollapsed?' collapsed':''}" onclick="toggleTeamSection()" style="cursor:pointer;user-select:none;margin-top:.75rem">
-      メンバー <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${members.length}/5人)</span>
-      <span class="arrow">▾</span>
-    </div>
-    <div id="team-inline-body-el" style="display:${teamCollapsed?'none':'flex'};flex-direction:column;gap:8px">
-      <div class="member-add-inline" style="margin-bottom:2px">
-        <input type="text" id="member-name-inline-input" placeholder="${canAdd?'メンバーの名前を入力...':'最大5人まで'}" ${canAdd?'':'disabled'} style="${canAdd?'':'opacity:.5;cursor:not-allowed'}" onkeydown="if(event.key==='Enter')addMember()">
-        <button class="btn btn-primary" style="width:auto;padding:5px 10px;font-size:12px;${canAdd?'':'opacity:.5;cursor:not-allowed'}" onclick="addMember()">＋ 追加</button>
-      </div>
-      ${members.length?membersHTML:'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px 0">メンバーを追加してください</div>'}
-    </div>
+  el.innerHTML=`<div style="margin-bottom:6px">
+    <div class="section-label" style="margin-top:.75rem">メンバー今週タスク <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${members.length}人)</span></div>
+    <div style="display:flex;flex-direction:column;gap:5px">${html}</div>
   </div>`;
+}
+
+function toggleMemberBlock(id){
+  const body=document.getElementById('mbody-'+id);
+  const arrow=document.getElementById('marrow-'+id);
+  if(!body)return;
+  const hidden=body.style.display==='none';
+  body.style.display=hidden?'block':'none';
+  if(arrow)arrow.textContent=hidden?'▼':'▶';
+}
+
+// ── メンバータブ描画 ──────────────────────────────────
+function renderMemberTab(){
+  const list=document.getElementById('member-reg-list');
+  const addArea=document.getElementById('member-reg-add');
+  if(!list)return;
+  if(members.length){
+    list.innerHTML=members.map((m,i)=>`
+      <div class="member-reg-item">
+        <div class="member-reg-num">${i+1}</div>
+        <div class="member-reg-name">${escHtml2(m.name)}</div>
+        <button class="icon-btn del" onclick="deleteMember(${m.id})" title="削除">🗑</button>
+      </div>`).join('');
+  }else{
+    list.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px 0">メンバーがまだいません</div>';
+  }
+  if(addArea){
+    const canAdd=members.length<5;
+    const inp=document.getElementById('member-reg-input');
+    if(inp){inp.disabled=!canAdd;inp.placeholder=canAdd?'メンバーの名前を入力...':'最大5人まで登録済み';inp.style.opacity=canAdd?'1':'.5';}
+    addArea.style.display=canAdd?'flex':'none';
+  }
+  // メンバータスクボタンの有効/無効
+  updateMemberTaskBtn();
+}
+
+function updateMemberTaskBtn(){
+  const btn=document.getElementById('btn-member-task');
+  if(btn){
+    btn.disabled=members.length===0;
+    btn.title=members.length===0?'メンバータブでメンバーを登録してください':'';
+  }
 }
 
 // ── Render list ────────────────────────────────────────
@@ -1007,14 +1179,16 @@ function renderList(){
     `<div class="section-label">進行中 <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${activeOnly.length}件)</span></div>
     <div class="task-list">${activeOnly.length?activeOnly.map(t=>t.isGroup?groupBlockHTML(t):taskCardHTML(t,false)).join(''):'<div class="empty"><div class="empty-icon">✓</div>進行中のタスクはありません</div>'}</div>`;
 
-  // メンバー管理を未完了・完了の間に表示
-  renderTeamInline();
+  // メンバー今週タスクを未完了・完了の間に表示
+  renderMemberTasksInline();
 
   const dd=document.getElementById('list-done');
   if(done.length){
     dd.innerHTML=`<div class="section-label done-toggle${doneCollapsed?' collapsed':''}" onclick="toggleDoneSection()">完了済み <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${done.length}件)</span><span class="arrow"> ▾</span></div>
       <div id="done-list" style="display:${doneCollapsed?'none':'block'}"><div class="task-list">${done.map(t=>t.isGroup?groupBlockHTML(t):taskCardHTML(t,false)).join('')}</div></div>`;
   }else dd.innerHTML='';
+
+  updateMemberTaskBtn();
 }
 function toggleDoneSection(){
   doneCollapsed=!doneCollapsed;
@@ -1034,10 +1208,14 @@ function renderStats(){
 // ── Gantt ──────────────────────────────────────────────
 function renderGantt(){
   const root=document.getElementById('gantt-root');
-  if(!tasks.length){root.innerHTML='<div class="empty"><div class="empty-icon">▦</div>タスクがありません</div>';return;}
+  if(!tasks.length&&!members.length){root.innerHTML='<div class="empty"><div class="empty-icon">▦</div>タスクがありません</div>';return;}
   const td=todayStr(),tdMs=new Date(td).getTime();
 
+  // 日付範囲：タスク + 今週のメンバー表示範囲を含める
+  const currentWeekKey=getWeekKey();
+  const currentWeekEnd=getWeekEnd(currentWeekKey);
   const allDates=tasks.flatMap(t=>[new Date(t.start),new Date(t.end)]);
+  allDates.push(new Date(currentWeekKey),new Date(currentWeekEnd));
   const minD=new Date(Math.min(...allDates.map(d=>d.getTime()),tdMs-86400000*7));
   const maxD=new Date(Math.max(...allDates.map(d=>d.getTime()),tdMs+86400000*30));
   while(minD.getDay()!==0)minD.setDate(minD.getDate()-1);
@@ -1135,15 +1313,60 @@ function renderGantt(){
     }
   });
 
-  // ガント全体の幅（ヘッダー + バーエリア）
+  // ── メンバー行（ガント上） ──────────────────────────
+  if(members.length>0){
+    rowsHTML+=`<div style="margin:6px 0 2px;border-top:1.5px solid #6a9fd8;"></div>`;
+    members.forEach(m=>{
+      if(!m.weeks)m.weeks={};
+      const wkTasks=m.weeks[currentWeekKey]||'';
+      const hasTask=wkTasks.trim().length>0;
+      // バー：火曜〜月曜
+      const wkStart=new Date(currentWeekKey);
+      const wkEnd=new Date(getWeekEnd(currentWeekKey));
+      const sIdx=Math.max(0,Math.round((wkStart-minD)/86400000));
+      const eIdx=Math.min(totalDays-1,Math.round((wkEnd-minD)/86400000));
+      const bLeft=sIdx*DW;
+      const bW=Math.max(DW,(eIdx-sIdx+1)*DW);
+      const barColor='#6a9fd8';
+      const rowH=hasTask?54:36;
+      const bH=hasTask?42:24;
+      const bTop=Math.floor((rowH-bH)/2);
+      // タスクテキスト（最初の1〜2行）
+      const firstLines=wkTasks.split('\n').filter(Boolean).slice(0,2).join(' / ');
+      const barLabel=hasTask?firstLines:'タスク未入力';
+      const barOpacity=hasTask?1:0.35;
+
+      const ganttBar=`<div class="gantt-bar"
+        style="left:${bLeft}px;width:${bW}px;height:${bH}px;top:${bTop}px;background:${barColor};opacity:${barOpacity};border-radius:5px;cursor:pointer"
+        onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')"
+        title="${escHtml2(m.name+': '+(wkTasks||'タスク未入力'))}">${escHtml2(m.name+(hasTask?'：'+barLabel:'（未入力）'))}</div>`;
+
+      rowsHTML+=`<div class="gantt-member-wrap" id="gm-${m.id}">
+        <div class="gantt-member-hdr">
+          <div style="width:22px;flex-shrink:0"></div>
+          <div class="gantt-row-name" style="width:${colName}px;font-weight:700;color:#3a6fa5" onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')">👤 ${escHtml2(m.name)}</div>
+          <div class="gantt-row-member" style="width:${colMember}px;font-size:9px;color:var(--text3)">${getWeekLabel(currentWeekKey)}</div>
+          <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden">
+            ${dayBgs}${todayLine}${ganttBar}
+            <div style="position:absolute;right:4px;bottom:4px;display:flex;gap:4px;z-index:5">
+              <button style="font-size:9px;padding:2px 6px;border-radius:4px;border:.5px solid #aac;background:rgba(255,255,255,.85);cursor:pointer;color:#3a6fa5"
+                onclick="event.stopPropagation();goGanttPastWeek(${m.id},'${currentWeekKey}')">◀ 過去週</button>
+              <button style="font-size:9px;padding:2px 6px;border-radius:4px;border:.5px solid var(--accent);background:rgba(232,238,248,.9);cursor:pointer;color:var(--accent)"
+                onclick="event.stopPropagation();goGanttNextWeek(${m.id},'${currentWeekKey}')">次週へ ▶</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // ガント全体の幅
   const totalW=22+colName+colMember+BAW;
 
   root.innerHTML=`
-    <!-- 上部スクロールバー -->
     <div class="gantt-scroll-top" id="gantt-scroll-top">
       <div class="gantt-scroll-top-inner" style="width:${totalW}px"></div>
     </div>
-    <!-- メインスクロール領域 -->
     <div class="gantt-scroll-main" id="gantt-scroll-main">
       <div style="min-width:${totalW}px">
         <div style="display:flex;align-items:flex-end;margin-bottom:2px">
@@ -1165,6 +1388,7 @@ function renderGantt(){
       <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:42px;background:#888;border-radius:5px;opacity:.7"></span>🔴 重い</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:28px;background:#888;border-radius:4px;opacity:.7"></span>🟡 普通</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:16px;background:#888;border-radius:3px;opacity:.7"></span>🟢 軽い</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:28px;background:#6a9fd8;border-radius:4px;opacity:.7"></span>👤 メンバー</span>
     </div>`;
 
   // 上部スクロールバーとメインを同期
@@ -1174,13 +1398,23 @@ function renderGantt(){
     let syncing=false;
     topBar.addEventListener('scroll',()=>{if(syncing)return;syncing=true;mainArea.scrollLeft=topBar.scrollLeft;syncing=false;});
     mainArea.addEventListener('scroll',()=>{if(syncing)return;syncing=true;topBar.scrollLeft=mainArea.scrollLeft;syncing=false;});
-    // 初期スクロール位置：今日が左から1/4
     const scrollTo=Math.max(0,todayLeft-(availW*0.25));
     mainArea.scrollLeft=scrollTo;
     topBar.scrollLeft=scrollTo;
   }
 
   initGanttDrag();initResizeHandles();
+}
+
+// ── ガント上のメンバー操作 ───────────────────────────
+function openGanttMemberModal(memberId,weekKey){
+  openMemberTaskModal(memberId,weekKey);
+}
+function goGanttPastWeek(memberId,currentWeekKey){
+  goToPastWeek(memberId,currentWeekKey);
+}
+function goGanttNextWeek(memberId,currentWeekKey){
+  goToNextWeek(memberId,currentWeekKey);
 }
 
 function isTopDone(t){
@@ -1415,13 +1649,14 @@ function startEditMemo(id){
   ta.addEventListener('blur',finish);
   ta.addEventListener('keydown',e=>{if(e.key==='Escape')renderMemos();if(e.key==='Enter'&&e.ctrlKey)finish();});
 }
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
 function escHtml2(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function render(){
   renderStats();renderList();renderGantt();
   if(document.getElementById('tab-cal').classList.contains('active'))renderCalendar();
   if(document.getElementById('tab-memo').classList.contains('active'))renderMemos();
+  if(document.getElementById('tab-member').classList.contains('active'))renderMemberTab();
 }
 
 // ── window登録 ──────────────────────────────────────
@@ -1449,20 +1684,31 @@ window.startEditMemo=startEditMemo;
 window.spSwitchTab=spSwitchTab;
 window.addMember=addMember;
 window.deleteMember=deleteMember;
-window.onWeekNoteChange=onWeekNoteChange;
-window.addWeekToMember=addWeekToMember;
-window.toggleMemberInline=toggleMemberInline;
-window.toggleTeamSection=toggleTeamSection;
+window.openMemberSelect=openMemberSelect;
+window.closeMemberSelect=closeMemberSelect;
+window.selectMemberForTask=selectMemberForTask;
+window.openMemberTaskModal=openMemberTaskModal;
+window.closeMemberTaskModal=closeMemberTaskModal;
+window.saveMemberTask=saveMemberTask;
+window.deleteMemberWeekTask=deleteMemberWeekTask;
+window.goToPastWeek=goToPastWeek;
+window.goToNextWeek=goToNextWeek;
+window.toggleMemberBlock=toggleMemberBlock;
+window.openGanttMemberModal=openGanttMemberModal;
+window.goGanttPastWeek=goGanttPastWeek;
+window.goGanttNextWeek=goGanttNextWeek;
 
 document.getElementById('memo-input').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();addMemo();}
 });
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeConfirm();}
+  if(e.key==='Escape'){closeModal();closeConfirm();closeMemberSelect();closeMemberTaskModal();}
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openModal();}
 });
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeModal();});
 document.getElementById('confirm-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('confirm-overlay'))closeConfirm();});
+document.getElementById('member-select-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('member-select-overlay'))closeMemberSelect();});
+document.getElementById('member-task-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('member-task-overlay'))closeMemberTaskModal();});
 let rTimer;window.addEventListener('resize',()=>{clearTimeout(rTimer);rTimer=setTimeout(renderGantt,120);});
 load();
 </script>
