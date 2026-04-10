@@ -348,3 +348,30 @@ function renderGantt(items, elementId) {
   items.forEach(t => {
     const tStart = new Date(t.start); const tEnd = new Date(t.end);
     const offset = Math.floor((tStart - minDate) / (1000*60*60*24)) * dayWidth;
+    const duration = (Math.ceil((tEnd - tStart) / (1000*60*60*24)) + 1) * dayWidth;
+    html += `<div class="gantt-row"><div class="gantt-task-label">${t.title}</div><div class="gantt-grid">
+      <div class="gantt-bar ${t.done?'done':''}" style="left:${offset}px; width:${duration}px;" onclick="openModal(${t.id})">${t.title}</div>
+    </div></div>`;
+  });
+  container.innerHTML = html + `</div>`;
+}
+
+function renderMembers() {
+  document.getElementById('member-grid').innerHTML = members.map(m => `
+    <div class="member-card">
+      <div class="member-name"><span>👤 ${m.name}</span><button onclick="deleteMember(${m.id})">削除</button></div>
+      <textarea class="member-week-input" oninput="onMemberNoteChange(${m.id}, this.value)">${m.weekNote || ''}</textarea>
+    </div>
+  `).join('');
+}
+
+function renderMemos() {
+  document.getElementById('memo-list').innerHTML = memos.map(m => `
+    <div class="memo-card"><div class="memo-content">${m.content}</div><div class="memo-date">${m.date}</div><button onclick="deleteMemo(${m.id})" style="position:absolute;top:8px;right:8px;">×</button></div>
+  `).join('');
+}
+
+render();
+</script>
+</body>
+</html>
