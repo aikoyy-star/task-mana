@@ -2,59 +2,376 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>データ復元・救出ツール</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TASK - Member Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-    body { font-family: sans-serif; padding: 40px; line-height: 1.6; background: #f5f4f0; }
-    .card { background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
-    h1 { color: #2a5caa; font-size: 20px; }
-    button { background: #2a5caa; color: #fff; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; }
-    button:hover { opacity: 0.9; }
-    .status { margin-top: 20px; padding: 12px; border-radius: 6px; display: none; }
-    .success { background: #e4f3ec; color: #1a7a52; display: block; }
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --text:#1a1917;--text2:#6b6a65;--text3:#a09f9a;
+  --accent:#2a5caa;--accent-bg:#e8eef8;
+  --green:#1a7a52;--green-bg:#e4f3ec;
+  --red:#b03a2e;--red-bg:#faeae8;
+  --amber:#8a5c00;--amber-bg:#fdf3dc;
+  --radius:10px;--radius-lg:14px;
+  --sat-bg:rgba(59,130,246,0.10);--sun-bg:rgba(220,38,38,0.08);
+  --shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;outline:none;}
+body{font-family:'Noto+Sans+JP',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;overflow-x:hidden;}
+button{cursor:pointer;border:none;font-family:inherit;background:none;transition:all 0.2s;}
+
+/* Layout */
+.app-container{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:240px;background:var(--surface2);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+
+/* Sidebar */
+.sidebar-title{font-size:13px;font-weight:700;color:var(--text3);margin-bottom:16px;padding-left:12px;letter-spacing:0.05em;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text2);text-decoration:none;font-size:14px;font-weight:500;margin-bottom:4px;}
+.nav-item:hover{background:var(--surface);color:var(--text);}
+.nav-item.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow);}
+
+/* Header */
+header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;z-index:10;}
+.view-title{font-size:18px;font-weight:700;display:flex;align-items:center;gap:12px;}
+.header-actions{display:flex;gap:12px;}
+.btn-primary{background:var(--accent);color:#fff;padding:8px 16px;border-radius:var(--radius);font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;}
+
+/* Tabs & Containers */
+.view-container{flex:1;overflow-y:auto;padding:24px 32px;display:none;}
+.view-container.active{display:block;}
+
+/* Section Styles */
+.section-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;margin-top:24px;cursor:pointer;user-select:none;}
+.section-header h2{font-size:14px;font-weight:700;color:var(--text2);}
+.section-header .count{background:var(--border);color:var(--text2);font-size:11px;padding:2px 6px;border-radius:10px;font-weight:700;}
+.section-content{margin-bottom:32px;}
+
+/* Task Card (List) */
+.task-list{display:flex;flex-direction:column;gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);}
+.task-item{background:var(--surface);padding:12px 16px;display:flex;align-items:center;gap:16px;transition:background 0.2s;}
+.task-check{width:18px;height:18px;border:2px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;color:transparent;font-size:12px;}
+.task-item.done .task-check{background:var(--accent);border-color:var(--accent);color:#fff;}
+.task-item.done .task-title{text-decoration:line-through;color:var(--text3);}
+.task-main{flex:1;}
+.task-title{font-size:14px;font-weight:500;margin-bottom:2px;}
+.task-meta{display:flex;gap:12px;font-size:12px;color:var(--text2);align-items:center;}
+.tag{padding:2px 8px;border-radius:4px;font-weight:600;font-size:10px;text-transform:uppercase;}
+.tag.high{background:var(--red-bg);color:var(--red);}
+.tag.medium{background:var(--amber-bg);color:var(--amber);}
+.tag.low{background:var(--green-bg);color:var(--green);}
+
+/* Gantt Scroll */
+.gantt-scroll-wrapper{width:100%;overflow-x:auto;height:12px;margin-bottom:4px;border-radius:6px;}
+.gantt-scroll-content{height:1px;}
+.gantt-outer{position:relative;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow);}
+.gantt-scroll-container{overflow-x:auto;width:100%;}
+.gantt-header{display:flex;background:var(--surface2);border-bottom:1px solid var(--border);}
+.gantt-label-col{width:220px;flex-shrink:0;padding:12px 16px;font-weight:700;font-size:12px;color:var(--text2);border-right:1px solid var(--border);background:var(--surface2);position:sticky;left:0;z-index:5;}
+.gantt-days{display:flex;flex:1;}
+.gantt-day-cell{width:36px;flex-shrink:0;text-align:center;padding:12px 0;font-size:11px;font-weight:600;color:var(--text3);border-right:1px solid var(--border);position:relative;}
+.gantt-day-cell.sat{background:var(--sat-bg);color:#2563eb;}
+.gantt-day-cell.sun{background:var(--sun-bg);color:#dc2626;}
+.gantt-day-cell.today{background:var(--accent-bg);color:var(--accent);}
+.gantt-row{display:flex;border-bottom:1px solid var(--border);min-height:44px;align-items:center;}
+.gantt-task-label{width:220px;flex-shrink:0;padding:8px 16px;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:1px solid var(--border);background:var(--surface);position:sticky;left:0;z-index:4;}
+.gantt-grid{display:flex;flex:1;position:relative;height:44px;}
+.gantt-bar{position:absolute;height:24px;top:10px;background:var(--accent);border-radius:12px;display:flex;align-items:center;padding:0 12px;color:#fff;font-size:10px;font-weight:700;white-space:nowrap;z-index:2;cursor:pointer;}
+
+/* Member Section */
+.member-container{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:32px;box-shadow:var(--shadow);}
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:20px;}
+.member-card{background:var(--surface2);border-radius:var(--radius);padding:16px;position:relative;}
+.member-name{font-weight:700;font-size:15px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+.member-week-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:13px;min-height:60px;resize:none;font-family:inherit;}
+
+/* Modal & Overlay */
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;}
+.modal{background:var(--surface);width:100%;max-width:500px;border-radius:var(--radius-lg);padding:32px;box-shadow:0 20px 40px rgba(0,0,0,0.2);position:relative;}
+.form-group{margin-bottom:20px;}
+.form-group label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;}
+.form-control{width:100%;padding:12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:inherit;}
+
+/* Memo Area */
+.memo-section{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);padding:24px;box-shadow:var(--shadow);}
+.memo-input-wrapper{margin-bottom:20px;display:flex;gap:12px;}
+.memo-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:16px;}
+.memo-card{background:var(--amber-bg);padding:16px;border-radius:var(--radius);position:relative;min-height:120px;}
+.memo-content{font-size:14px;white-space:pre-wrap;}
+.memo-date{font-size:10px;color:var(--amber);margin-top:12px;}
+
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
 </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>タスク管理アプリ：データ復元ツール</h1>
-    <p>以前のアプリで登録していたタスクやメモを、新しい形式に強制的にコピーします。</p>
-    <button onclick="recoveryData()">データ復元を実行する</button>
-    <div id="status" class="status"></div>
-    <p style="font-size: 12px; color: #666; margin-top: 20px;">
-        ※実行後、元のタスク管理アプリのページに戻って「再読み込み（F5）」をしてください。
-    </p>
+<div class="app-container">
+  <aside class="sidebar">
+    <div class="sidebar-title">TASK MANAGER</div>
+    <nav>
+      <a href="#" class="nav-item active" onclick="switchTab('list')"><span>📋</span> 一覧 & ガント</a>
+      <a href="#" class="nav-item" onclick="switchTab('memo')"><span>💡</span> メモ</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header>
+      <div class="view-title" id="current-view-name">📋 一覧 & ガント</div>
+      <div class="header-actions">
+        <button class="btn-primary" onclick="openModal()"><span>+</span> <span>新規タスク</span></button>
+      </div>
+    </header>
+
+    <div id="view-list" class="view-container active">
+      <div class="section-header" onclick="toggleGroup('pending')">
+        <span id="arrow-pending">▼</span><h2>未完了のタスク</h2><span class="count" id="count-pending">0</span>
+      </div>
+      <div id="content-pending" class="section-content">
+        <div id="list-pending" class="task-list" style="margin-bottom:24px;"></div>
+        <div class="gantt-scroll-wrapper" id="gantt-top-scroll"><div class="gantt-scroll-content" id="gantt-top-content"></div></div>
+        <div class="gantt-outer"><div class="gantt-scroll-container" id="gantt-container-pending"><div id="gantt-pending"></div></div></div>
+      </div>
+
+      <div class="section-header"><h2>👥 メンバー（週報・管理）</h2><span class="count" id="count-members">0</span></div>
+      <div class="member-container">
+        <div style="margin-bottom:16px; display:flex; gap:10px;">
+          <input type="text" id="member-name-input" class="form-control" placeholder="メンバー名を入力（最大5人）" style="max-width:240px; padding:8px;">
+          <button class="btn-primary" onclick="addMember()" style="padding:8px 12px;">追加</button>
+        </div>
+        <div id="member-grid" class="member-grid"></div>
+      </div>
+
+      <div class="section-header" onclick="toggleGroup('done')">
+        <span id="arrow-done">▶</span><h2>完了したタスク</h2><span class="count" id="count-done">0</span>
+      </div>
+      <div id="content-done" class="section-content" style="display:none;"><div id="list-done" class="task-list"></div></div>
+    </div>
+
+    <div id="view-memo" class="view-container">
+      <div class="memo-section">
+        <div class="memo-input-wrapper">
+          <textarea id="memo-input" class="form-control" placeholder="メモを入力..."></textarea>
+          <button class="btn-primary" onclick="addMemo()">保存</button>
+        </div>
+        <div id="memo-list" class="memo-list"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 style="margin-bottom:24px;">タスク作成/編集</h3>
+    <input type="hidden" id="task-id">
+    <div class="form-group"><label>タスク名</label><input type="text" id="task-title" class="form-control"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group"><label>開始日</label><input type="date" id="task-start" class="form-control"></div>
+      <div class="form-group"><label>締切日</label><input type="date" id="task-end" class="form-control"></div>
+    </div>
+    <div class="form-group">
+      <label>優先度</label>
+      <select id="task-priority" class="form-control">
+        <option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option>
+      </select>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:12px;">
+      <button onclick="closeModal()">キャンセル</button>
+      <button class="btn-primary" onclick="saveTask()">保存</button>
+    </div>
+  </div>
 </div>
 
 <script>
-function recoveryData() {
-    let recoveredCount = 0;
-    
-    // ブラウザに保存されている全ての名前（キー）を調べて、それらしいものをコピーする
-    const allKeys = Object.keys(localStorage);
-    
-    allKeys.forEach(key => {
-        // 'task' や 'memo'、'member'、'member_list' などが含まれる古いデータをすべて新形式に移行
-        if (key === 'tasks' || key.includes('task_data') || key === 'TASK_LIST') {
-            const data = localStorage.getItem(key);
-            localStorage.setItem('tasks_v2', data);
-            recoveredCount++;
-        }
-        if (key === 'memos' || key.includes('memo_data')) {
-            const data = localStorage.getItem(key);
-            localStorage.setItem('memos_v2', data);
-            recoveredCount++;
-        }
-        if (key === 'members' || key === 'member_list' || key.includes('member')) {
-            const data = localStorage.getItem(key);
-            localStorage.setItem('members_v2', data);
-            recoveredCount++;
-        }
-    });
+// --- Data Management (復元機能付き) ---
+let tasks = JSON.parse(localStorage.getItem('tasks_v2') || localStorage.getItem('tasks') || '[]');
+let memos = JSON.parse(localStorage.getItem('memos_v2') || localStorage.getItem('memos') || '[]');
+let members = JSON.parse(localStorage.getItem('members_v2') || localStorage.getItem('members') || '[]');
+let collapsed = { pending: false, done: true };
 
-    const status = document.getElementById('status');
-    status.className = 'status success';
-    status.innerText = '復元処理が完了しました。タスク管理アプリの画面に戻って再読み込みしてください。';
+// 初期読み込み時に新キーへ移行
+localStorage.setItem('tasks_v2', JSON.stringify(tasks));
+localStorage.setItem('memos_v2', JSON.stringify(memos));
+localStorage.setItem('members_v2', JSON.stringify(members));
+
+function saveAndRender() {
+  localStorage.setItem('tasks_v2', JSON.stringify(tasks));
+  localStorage.setItem('memos_v2', JSON.stringify(memos));
+  localStorage.setItem('members_v2', JSON.stringify(members));
+  render();
 }
+
+function switchTab(tabId) {
+  document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + tabId).classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  if(tabId === 'list') { navItems[0].classList.add('active'); document.getElementById('current-view-name').innerText = '📋 一覧 & ガント'; }
+  else { navItems[1].classList.add('active'); document.getElementById('current-view-name').innerText = '💡 メモ'; }
+  render();
+}
+
+function openModal(id = null) {
+  const t = id ? tasks.find(x => x.id == id) : null;
+  document.getElementById('task-id').value = t ? t.id : '';
+  document.getElementById('task-title').value = t ? t.title : '';
+  document.getElementById('task-start').value = t ? t.start : new Date().toISOString().split('T')[0];
+  document.getElementById('task-end').value = t ? t.end : new Date().toISOString().split('T')[0];
+  document.getElementById('task-priority').value = t ? t.priority : 'medium';
+  document.getElementById('overlay').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('overlay').style.display = 'none'; }
+
+function saveTask() {
+  const id = document.getElementById('task-id').value;
+  const title = document.getElementById('task-title').value;
+  const start = document.getElementById('task-start').value;
+  const end = document.getElementById('task-end').value;
+  const priority = document.getElementById('task-priority').value;
+  if(!title) return;
+  if(id) {
+    const idx = tasks.findIndex(x => x.id == id);
+    tasks[idx] = { ...tasks[idx], title, start, end, priority };
+  } else {
+    tasks.push({ id: Date.now(), title, start, end, priority, done: false });
+  }
+  saveAndRender(); closeModal();
+}
+
+function toggleTask(id) {
+  const idx = tasks.findIndex(x => x.id == id);
+  tasks[idx].done = !tasks[idx].done;
+  saveAndRender();
+}
+
+function deleteTask(id) {
+  if(!confirm('削除しますか？')) return;
+  tasks = tasks.filter(x => x.id != id);
+  saveAndRender();
+}
+
+function addMember() {
+  const name = document.getElementById('member-name-input').value.trim();
+  if(!name || members.length >= 5) return;
+  members.push({ id: Date.now(), name, weekNote: "" });
+  document.getElementById('member-name-input').value = "";
+  saveAndRender();
+}
+
+function deleteMember(id) {
+  if(!confirm('削除しますか？')) return;
+  members = members.filter(m => m.id != id);
+  saveAndRender();
+}
+
+function onMemberNoteChange(id, val) {
+  const idx = members.findIndex(m => m.id == id);
+  if(idx > -1) { members[idx].weekNote = val; localStorage.setItem('members_v2', JSON.stringify(members)); }
+}
+
+function addMemo() {
+  const content = document.getElementById('memo-input').value.trim();
+  if(!content) return;
+  memos.unshift({ id: Date.now(), content, date: new Date().toLocaleString() });
+  document.getElementById('memo-input').value = "";
+  saveAndRender();
+}
+
+function deleteMemo(id) { memos = memos.filter(m => m.id != id); saveAndRender(); }
+
+function toggleGroup(key) { collapsed[key] = !collapsed[key]; render(); }
+
+function render() {
+  const pending = tasks.filter(t => !t.done).sort((a,b) => a.start.localeCompare(b.start));
+  const done = tasks.filter(t => t.done).sort((a,b) => b.start.localeCompare(a.start));
+  document.getElementById('count-pending').innerText = pending.length;
+  document.getElementById('count-done').innerText = done.length;
+  document.getElementById('count-members').innerText = members.length;
+  document.getElementById('content-pending').style.display = collapsed.pending ? 'none' : 'block';
+  document.getElementById('arrow-pending').innerText = collapsed.pending ? '▶' : '▼';
+  document.getElementById('content-done').style.display = collapsed.done ? 'none' : 'block';
+  document.getElementById('arrow-done').innerText = collapsed.done ? '▶' : '▼';
+
+  renderTaskList(pending, 'list-pending');
+  renderTaskList(done, 'list-done');
+  if(!collapsed.pending) renderGantt(pending, 'gantt-pending');
+  renderMembers();
+  renderMemos();
+}
+
+function renderTaskList(items, elementId) {
+  const container = document.getElementById(elementId);
+  container.innerHTML = items.map(t => `
+    <div class="task-item ${t.done ? 'done' : ''}">
+      <div class="task-check" onclick="toggleTask(${t.id})">${t.done ? '✓' : ''}</div>
+      <div class="task-main" onclick="openModal(${t.id})">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta"><span class="tag ${t.priority}">${t.priority}</span><span>📅 ${t.start}〜${t.end}</span></div>
+      </div>
+      <button onclick="deleteTask(${t.id})">×</button>
+    </div>
+  `).join('');
+}
+
+function renderGantt(items, elementId) {
+  const container = document.getElementById(elementId);
+  if(items.length === 0) { 
+    container.innerHTML = ''; 
+    document.getElementById('gantt-top-scroll').style.display = 'none'; 
+    return; 
+  }
+  document.getElementById('gantt-top-scroll').style.display = 'block';
+  const startDates = items.map(i => new Date(i.start));
+  const endDates = items.map(i => new Date(i.end));
+  const minDate = new Date(Math.min(...startDates)); minDate.setDate(minDate.getDate() - 2);
+  const maxDate = new Date(Math.max(...endDates)); maxDate.setDate(maxDate.getDate() + 10);
+  const daysCount = Math.ceil((maxDate - minDate) / (1000*60*60*24));
+  const dayWidth = 36; const totalWidth = daysCount * dayWidth;
+
+  const topScroll = document.getElementById('gantt-top-scroll');
+  const bottomContainer = document.getElementById('gantt-container-pending');
+  document.getElementById('gantt-top-content').style.width = (totalWidth + 220) + 'px';
+  topScroll.onscroll = () => { bottomContainer.scrollLeft = topScroll.scrollLeft; };
+  bottomContainer.onscroll = () => { topScroll.scrollLeft = bottomContainer.scrollLeft; };
+
+  let html = `<div style="width:${totalWidth + 220}px;"><div class="gantt-header"><div class="gantt-label-col">タスク名</div><div class="gantt-days">`;
+  for(let i=0; i<daysCount; i++) {
+    const d = new Date(minDate); d.setDate(d.getDate() + i);
+    const isSat = d.getDay() === 6; const isSun = d.getDay() === 0;
+    const isToday = d.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
+    html += `<div class="gantt-day-cell ${isSat?'sat':''} ${isSun?'sun':''} ${isToday?'today':''}">${d.getMonth()+1}/${d.getDate()}</div>`;
+  }
+  html += `</div></div>`;
+  items.forEach(t => {
+    const tStart = new Date(t.start); const tEnd = new Date(t.end);
+    const offset = Math.floor((tStart - minDate) / (1000*60*60*24)) * dayWidth;
+    const duration = (Math.ceil((tEnd - tStart) / (1000*60*60*24)) + 1) * dayWidth;
+    html += `<div class="gantt-row"><div class="gantt-task-label">${t.title}</div><div class="gantt-grid">
+      <div class="gantt-bar ${t.done?'done':''}" style="left:${offset}px; width:${duration}px;" onclick="openModal(${t.id})">${t.title}</div>
+    </div></div>`;
+  });
+  container.innerHTML = html + `</div>`;
+}
+
+function renderMembers() {
+  document.getElementById('member-grid').innerHTML = members.map(m => `
+    <div class="member-card">
+      <div class="member-name"><span>👤 ${m.name}</span><button onclick="deleteMember(${m.id})">削除</button></div>
+      <textarea class="member-week-input" oninput="onMemberNoteChange(${m.id}, this.value)">${m.weekNote || ''}</textarea>
+    </div>
+  `).join('');
+}
+
+function renderMemos() {
+  document.getElementById('memo-list').innerHTML = memos.map(m => `
+    <div class="memo-card"><div class="memo-content">${m.content}</div><div class="memo-date">${m.date}</div><button onclick="deleteMemo(${m.id})" style="position:absolute;top:8px;right:8px;">×</button></div>
+  `).join('');
+}
+
+render();
 </script>
 </body>
 </html>
