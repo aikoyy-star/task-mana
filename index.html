@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TASK - Restore & Manage</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>TASK - Professional Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;
@@ -22,86 +22,67 @@
 body{font-family:'Noto+Sans+JP',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;overflow-x:hidden;}
 button{cursor:pointer;border:none;font-family:inherit;background:none;transition:all 0.2s;}
 
-/* Layout */
 .app-container{display:flex;height:100vh;overflow:hidden;}
 .sidebar{width:240px;background:var(--surface2);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;}
 .main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
 
-/* Sidebar */
 .sidebar-title{font-size:13px;font-weight:700;color:var(--text3);margin-bottom:16px;padding-left:12px;letter-spacing:0.05em;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text2);text-decoration:none;font-size:14px;font-weight:500;margin-bottom:4px;}
 .nav-item:hover{background:var(--surface);color:var(--text);}
 .nav-item.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow);}
 
-/* Header */
 header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;z-index:10;}
-.view-title{font-size:18px;font-weight:700;display:flex;align-items:center;gap:12px;}
-.btn-primary{background:var(--accent);color:#fff;padding:8px 16px;border-radius:var(--radius);font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;}
+.view-title{font-size:18px;font-weight:700;}
+.btn-primary{background:var(--accent);color:#fff;padding:8px 16px;border-radius:var(--radius);font-weight:600;font-size:14px;}
 
-/* Containers */
 .view-container{flex:1;overflow-y:auto;padding:24px 32px;display:none;}
 .view-container.active{display:block;}
 
-/* Section Styles */
 .section-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;margin-top:24px;cursor:pointer;user-select:none;}
 .section-header h2{font-size:14px;font-weight:700;color:var(--text2);}
-.section-header .count{background:var(--border);color:var(--text2);font-size:11px;padding:2px 6px;border-radius:10px;font-weight:700;}
-.section-content{margin-bottom:32px;}
+.section-header .count{background:var(--border);color:var(--text2);font-size:11px;padding:2px 6px;border-radius:10px;}
 
-/* Task Card (List) */
 .task-list{display:flex;flex-direction:column;gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);}
-.task-item{background:var(--surface);padding:12px 16px;display:flex;align-items:center;gap:16px;transition:background 0.2s;}
+.task-item{background:var(--surface);padding:12px 16px;display:flex;align-items:center;gap:16px;}
 .task-check{width:18px;height:18px;border:2px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;color:transparent;font-size:12px;}
 .task-item.done .task-check{background:var(--accent);border-color:var(--accent);color:#fff;}
 .task-item.done .task-title{text-decoration:line-through;color:var(--text3);}
 .task-main{flex:1;}
-.task-title{font-size:14px;font-weight:500;margin-bottom:2px;}
-.task-meta{display:flex;gap:12px;font-size:12px;color:var(--text2);align-items:center;}
-.tag{padding:2px 8px;border-radius:4px;font-weight:600;font-size:10px;text-transform:uppercase;}
+.task-title{font-size:14px;font-weight:500;}
+.task-meta{display:flex;gap:12px;font-size:12px;color:var(--text2);margin-top:2px;}
+.tag{padding:2px 8px;border-radius:4px;font-weight:600;font-size:10px;}
 .tag.high{background:var(--red-bg);color:var(--red);}
-.tag.medium{background:var(--amber-bg);color:var(--amber);}
+.tag.med{background:var(--amber-bg);color:var(--amber);}
 .tag.low{background:var(--green-bg);color:var(--green);}
 
-/* Gantt Scroll */
-.gantt-scroll-wrapper{width:100%;overflow-x:auto;height:12px;margin-bottom:4px;border-radius:6px;}
+/* Gantt Styles */
+.gantt-scroll-wrapper{width:100%;overflow-x:auto;height:12px;margin-bottom:4px;}
 .gantt-scroll-content{height:1px;}
-.gantt-outer{position:relative;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow);}
+.gantt-outer{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden;}
 .gantt-scroll-container{overflow-x:auto;width:100%;}
 .gantt-header{display:flex;background:var(--surface2);border-bottom:1px solid var(--border);}
-.gantt-label-col{width:220px;flex-shrink:0;padding:12px 16px;font-weight:700;font-size:12px;color:var(--text2);border-right:1px solid var(--border);background:var(--surface2);position:sticky;left:0;z-index:5;}
+.gantt-label-col{width:220px;flex-shrink:0;padding:12px 16px;font-weight:700;font-size:12px;background:var(--surface2);position:sticky;left:0;z-index:5;}
 .gantt-days{display:flex;flex:1;}
-.gantt-day-cell{width:36px;flex-shrink:0;text-align:center;padding:12px 0;font-size:11px;font-weight:600;color:var(--text3);border-right:1px solid var(--border);position:relative;}
+.gantt-day-cell{width:36px;flex-shrink:0;text-align:center;padding:12px 0;font-size:11px;border-right:1px solid var(--border);}
 .gantt-day-cell.sat{background:var(--sat-bg);color:#2563eb;}
 .gantt-day-cell.sun{background:var(--sun-bg);color:#dc2626;}
-.gantt-day-cell.today{background:var(--accent-bg);color:var(--accent);}
 .gantt-row{display:flex;border-bottom:1px solid var(--border);min-height:44px;align-items:center;}
-.gantt-task-label{width:220px;flex-shrink:0;padding:8px 16px;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:1px solid var(--border);background:var(--surface);position:sticky;left:0;z-index:4;}
+.gantt-task-label{width:220px;flex-shrink:0;padding:8px 16px;font-size:13px;border-right:1px solid var(--border);background:var(--surface);position:sticky;left:0;z-index:4;overflow:hidden;text-overflow:ellipsis;}
 .gantt-grid{display:flex;flex:1;position:relative;height:44px;}
-.gantt-bar{position:absolute;height:24px;top:10px;background:var(--accent);border-radius:12px;display:flex;align-items:center;padding:0 12px;color:#fff;font-size:10px;font-weight:700;white-space:nowrap;z-index:2;cursor:pointer;}
+.gantt-bar{position:absolute;height:24px;top:10px;background:var(--accent);border-radius:12px;padding:0 12px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;white-space:nowrap;z-index:2;}
 
-/* Member Section */
-.member-container{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:32px;box-shadow:var(--shadow);}
-.member-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:20px;}
-.member-card{background:var(--surface2);border-radius:var(--radius);padding:16px;position:relative;}
-.member-name{font-weight:700;font-size:15px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
-.member-week-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:13px;min-height:60px;resize:none;font-family:inherit;}
+/* Members & Memos */
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:20px;margin-top:16px;}
+.member-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.member-week-input{width:100%;margin-top:12px;padding:8px;border:1px solid var(--border);border-radius:6px;min-height:60px;resize:none;}
+.memo-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:16px;margin-top:20px;}
+.memo-card{background:var(--amber-bg);padding:16px;border-radius:var(--radius);position:relative;min-height:100px;}
 
-/* Modal & Overlay */
-.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;}
-.modal{background:var(--surface);width:100%;max-width:500px;border-radius:var(--radius-lg);padding:32px;box-shadow:0 20px 40px rgba(0,0,0,0.2);position:relative;}
-.form-group{margin-bottom:20px;}
-.form-group label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;}
-.form-control{width:100%;padding:12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:inherit;}
-
-/* Memo */
-.memo-section{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);padding:24px;box-shadow:var(--shadow);}
-.memo-input-wrapper{margin-bottom:20px;display:flex;gap:12px;}
-.memo-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:16px;}
-.memo-card{background:var(--amber-bg);padding:16px;border-radius:var(--radius);position:relative;min-height:120px;}
-.memo-content{font-size:14px;white-space:pre-wrap;}
-
-::-webkit-scrollbar{width:8px;height:8px;}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
+/* Modal */
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:100;}
+.modal{background:var(--surface);width:500px;border-radius:var(--radius-lg);padding:32px;}
+.form-group{margin-bottom:16px;}
+.form-control{width:100%;padding:10px;border:1px solid var(--border2);border-radius:6px;}
 </style>
 </head>
 <body>
@@ -110,59 +91,47 @@ header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(-
   <aside class="sidebar">
     <div class="sidebar-title">TASK MANAGER</div>
     <nav>
-      <a href="#" class="nav-item active" onclick="switchTab('list')"><span>📋</span> 一覧 & ガント</a>
-      <a href="#" class="nav-item" onclick="switchTab('memo')"><span>💡</span> メモ</a>
+      <a href="#" class="nav-item active" onclick="switchTab('list')">📋 一覧 & ガント</a>
+      <a href="#" class="nav-item" onclick="switchTab('memo')">💡 メモ</a>
     </nav>
   </aside>
 
   <main class="main-content">
     <header>
       <div class="view-title" id="current-view-name">📋 一覧 & ガント</div>
-      <div class="header-actions">
-        <button class="btn-primary" onclick="openModal()"><span>+</span> <span>新規タスク</span></button>
-      </div>
+      <button class="btn-primary" onclick="openModal()">+ 新規タスク</button>
     </header>
 
     <div id="view-list" class="view-container active">
       <div class="section-header" onclick="toggleGroup('pending')">
         <span id="arrow-pending">▼</span><h2>未完了のタスク</h2><span class="count" id="count-pending">0</span>
       </div>
-      <div id="content-pending" class="section-content">
+      <div id="content-pending">
         <div id="list-pending" class="task-list" style="margin-bottom:24px;"></div>
         <div class="gantt-scroll-wrapper" id="gantt-top-scroll"><div class="gantt-scroll-content" id="gantt-top-content"></div></div>
         <div class="gantt-outer"><div class="gantt-scroll-container" id="gantt-container-pending"><div id="gantt-pending"></div></div></div>
       </div>
 
-      <div class="section-header"><h2>👥 メンバー（週報・管理）</h2><span class="count" id="count-members">0</span></div>
-      <div class="member-container">
-        <div style="margin-bottom:16px; display:flex; gap:10px;">
-          <input type="text" id="member-name-input" class="form-control" placeholder="メンバー名" style="max-width:240px; padding:8px;">
-          <button class="btn-primary" onclick="addMember()">追加</button>
-        </div>
-        <div id="member-grid" class="member-grid"></div>
-      </div>
+      <div class="section-header"><h2>👥 メンバー（週報）</h2><span class="count" id="count-members">0</span></div>
+      <div id="member-grid" class="member-grid"></div>
 
       <div class="section-header" onclick="toggleGroup('done')">
         <span id="arrow-done">▶</span><h2>完了したタスク</h2><span class="count" id="count-done">0</span>
       </div>
-      <div id="content-done" class="section-content" style="display:none;"><div id="list-done" class="task-list"></div></div>
+      <div id="content-done" style="display:none;"><div id="list-done" class="task-list"></div></div>
     </div>
 
     <div id="view-memo" class="view-container">
-      <div class="memo-section">
-        <div class="memo-input-wrapper">
-          <textarea id="memo-input" class="form-control" placeholder="メモを入力..."></textarea>
-          <button class="btn-primary" onclick="addMemo()">保存</button>
-        </div>
-        <div id="memo-list" class="memo-list"></div>
-      </div>
+      <textarea id="memo-input" class="form-control" placeholder="新しいメモを入力..."></textarea>
+      <button class="btn-primary" onclick="addMemo()" style="margin-top:10px;">メモを保存</button>
+      <div id="memo-list" class="memo-list"></div>
     </div>
   </main>
 </div>
 
 <div class="overlay" id="overlay">
   <div class="modal">
-    <h3 style="margin-bottom:24px;">タスク編集</h3>
+    <h3 style="margin-bottom:20px;">タスク編集</h3>
     <input type="hidden" id="task-id">
     <div class="form-group"><label>タスク名</label><input type="text" id="task-title" class="form-control"></div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
@@ -170,10 +139,7 @@ header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(-
       <div class="form-group"><label>締切日</label><input type="date" id="task-end" class="form-control"></div>
     </div>
     <div class="form-group">
-      <label>優先度</label>
-      <select id="task-priority" class="form-control">
-        <option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option>
-      </select>
+      <label>担当者</label><input type="text" id="task-members" class="form-control">
     </div>
     <div style="display:flex; justify-content:flex-end; gap:12px;">
       <button onclick="closeModal()">キャンセル</button>
@@ -183,49 +149,50 @@ header{padding:16px 32px;background:var(--surface);border-bottom:1px solid var(-
 </div>
 
 <script>
-// --- Data Logic (階層構造対応版) ---
-function getInitialTasks() {
-  const raw = localStorage.getItem('todo_tasks_v3') || '[]';
-  const data = JSON.parse(raw);
-  // もしデータが [{name: '未分類', tasks: [...]}] という階層構造なら平坦化する
-  if (data.length > 0 && data[0].tasks) {
-    let flat = [];
-    data.forEach(group => { flat = flat.concat(group.tasks); });
-    return flat;
-  }
-  return data; // すでに平坦なリストならそのまま
+// --- Data Core (山崎様のJSON構造に完全対応) ---
+let db = JSON.parse(localStorage.getItem('todo_tasks_v3') || '{"tasks":[], "memos":[], "members":[]}');
+
+// コンソール結果に基づき、データがtasks直下にない場合や平坦化が必要な場合の処理
+function getFlatTasks() {
+  if (!db.tasks) return [];
+  let all = [];
+  db.tasks.forEach(t => {
+    all.push(t);
+    if (t.children && t.children.length > 0) {
+      // 子タスクがある場合（階層構造）の展開
+      t.children.forEach(cId => {
+        const child = db.tasks.find(x => x.id === cId);
+        if (child && !all.includes(child)) all.push(child);
+      });
+    }
+  });
+  // 重複を除去
+  return Array.from(new Set(all));
 }
 
-let tasks = getInitialTasks();
-let memos = JSON.parse(localStorage.getItem('memos_v2') || '[]');
-let members = JSON.parse(localStorage.getItem('members_v2') || '[]');
+let tasks = getFlatTasks();
 let collapsed = { pending: false, done: true };
 
 function save() {
-  localStorage.setItem('todo_tasks_v3', JSON.stringify(tasks));
-  localStorage.setItem('memos_v2', JSON.stringify(memos));
-  localStorage.setItem('members_v2', JSON.stringify(members));
+  db.tasks = tasks;
+  localStorage.setItem('todo_tasks_v3', JSON.stringify(db));
   render();
 }
 
-// --- UI Logic (以前の動作を継承) ---
 function switchTab(tabId) {
   document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('view-' + tabId).classList.add('active');
-  const navItems = document.querySelectorAll('.nav-item');
-  if(tabId === 'list') navItems[0].classList.add('active');
-  else navItems[1].classList.add('active');
   render();
 }
 
 function openModal(id = null) {
   const t = id ? tasks.find(x => x.id == id) : null;
   document.getElementById('task-id').value = t ? t.id : '';
-  document.getElementById('task-title').value = t ? t.title : '';
+  document.getElementById('task-title').value = t ? t.name || t.title : '';
   document.getElementById('task-start').value = t ? t.start : new Date().toISOString().split('T')[0];
   document.getElementById('task-end').value = t ? t.end : new Date().toISOString().split('T')[0];
-  document.getElementById('task-priority').value = t ? t.priority : 'medium';
+  document.getElementById('task-members').value = t ? t.members || '' : '';
   document.getElementById('overlay').style.display = 'flex';
 }
 
@@ -233,21 +200,22 @@ function closeModal() { document.getElementById('overlay').style.display = 'none
 
 function saveTask() {
   const id = document.getElementById('task-id').value;
-  const title = document.getElementById('task-title').value;
-  if(!title) return;
-  const taskObj = {
-    id: id || Date.now(),
-    title,
+  const name = document.getElementById('task-title').value;
+  if(!name) return;
+  const obj = {
+    id: id ? parseInt(id) : Date.now(),
+    name: name,
     start: document.getElementById('task-start').value,
     end: document.getElementById('task-end').value,
-    priority: document.getElementById('task-priority').value,
-    done: id ? tasks.find(x => x.id == id).done : false
+    members: document.getElementById('task-members').value,
+    done: id ? tasks.find(x => x.id == id).done : false,
+    priority: id ? tasks.find(x => x.id == id).priority : 'med'
   };
   if(id) {
     const idx = tasks.findIndex(x => x.id == id);
-    tasks[idx] = taskObj;
+    tasks[idx] = obj;
   } else {
-    tasks.push(taskObj);
+    tasks.push(obj);
   }
   save(); closeModal();
 }
@@ -258,40 +226,15 @@ function toggleTask(id) {
   save();
 }
 
-function deleteTask(id) {
-  if(!confirm('削除しますか？')) return;
-  tasks = tasks.filter(x => x.id != id);
-  save();
-}
-
-function addMember() {
-  const name = document.getElementById('member-name-input').value.trim();
-  if(!name || members.length >= 5) return;
-  members.push({ id: Date.now(), name, weekNote: "" });
-  document.getElementById('member-name-input').value = "";
-  save();
-}
-
-function deleteMember(id) {
-  if(!confirm('削除しますか？')) return;
-  members = members.filter(m => m.id != id);
-  save();
-}
-
-function onMemberNoteChange(id, val) {
-  const idx = members.findIndex(m => m.id == id);
-  if(idx > -1) { members[idx].weekNote = val; localStorage.setItem('members_v2', JSON.stringify(members)); }
-}
-
 function addMemo() {
-  const content = document.getElementById('memo-input').value.trim();
-  if(!content) return;
-  memos.unshift({ id: Date.now(), content, date: new Date().toLocaleString() });
-  document.getElementById('memo-input').value = "";
+  const text = document.getElementById('memo-input').value;
+  if(!text) return;
+  if(!db.memos) db.memos = [];
+  db.memos.unshift({ id: Date.now(), text: text, createdAt: Date.now() });
+  document.getElementById('memo-input').value = '';
   save();
 }
 
-function deleteMemo(id) { memos = memos.filter(m => m.id != id); save(); }
 function toggleGroup(key) { collapsed[key] = !collapsed[key]; render(); }
 
 function render() {
@@ -300,43 +243,34 @@ function render() {
   
   document.getElementById('count-pending').innerText = pending.length;
   document.getElementById('count-done').innerText = done.length;
-  document.getElementById('count-members').innerText = members.length;
-  
   document.getElementById('content-pending').style.display = collapsed.pending ? 'none' : 'block';
-  document.getElementById('arrow-pending').innerText = collapsed.pending ? '▶' : '▼';
   document.getElementById('content-done').style.display = collapsed.done ? 'none' : 'block';
-  document.getElementById('arrow-done').innerText = collapsed.done ? '▶' : '▼';
 
   renderTaskList(pending, 'list-pending');
   renderTaskList(done, 'list-done');
-  if(!collapsed.pending) renderGantt(pending, 'gantt-pending');
-  renderMembers();
+  renderGantt(pending);
   renderMemos();
 }
 
 function renderTaskList(items, elementId) {
-  const container = document.getElementById(elementId);
-  container.innerHTML = items.map(t => `
+  document.getElementById(elementId).innerHTML = items.map(t => `
     <div class="task-item ${t.done ? 'done' : ''}">
       <div class="task-check" onclick="toggleTask(${t.id})">${t.done ? '✓' : ''}</div>
       <div class="task-main" onclick="openModal(${t.id})">
-        <div class="task-title">${t.title}</div>
-        <div class="task-meta"><span class="tag ${t.priority}">${t.priority}</span><span>📅 ${t.start}〜${t.end}</span></div>
+        <div class="task-title">${t.name || t.title}</div>
+        <div class="task-meta">
+          <span class="tag ${t.priority || 'med'}">${t.priority || 'med'}</span>
+          <span>👤 ${t.members || 'なし'}</span>
+          <span>📅 ${t.start} 〜 ${t.end}</span>
+        </div>
       </div>
-      <button onclick="deleteTask(${t.id})">×</button>
     </div>
   `).join('');
 }
 
-function renderGantt(items, elementId) {
-  const container = document.getElementById(elementId);
-  if(items.length === 0) { 
-    container.innerHTML = ''; 
-    document.getElementById('gantt-top-scroll').style.display = 'none'; 
-    return; 
-  }
-  document.getElementById('gantt-top-scroll').style.display = 'block';
-
+function renderGantt(items) {
+  const container = document.getElementById('gantt-pending');
+  if(items.length === 0) return;
   const startDates = items.map(i => new Date(i.start));
   const endDates = items.map(i => new Date(i.end));
   const minDate = new Date(Math.min(...startDates)); minDate.setDate(minDate.getDate() - 2);
@@ -351,37 +285,31 @@ function renderGantt(items, elementId) {
   topScroll.onscroll = () => { bottomContainer.scrollLeft = topScroll.scrollLeft; };
   bottomContainer.onscroll = () => { topScroll.scrollLeft = bottomContainer.scrollLeft; };
 
-  let html = `<div style="width:${totalWidth + 220}px;"><div class="gantt-header"><div class="gantt-label-col">タスク名</div><div class="gantt-days">`;
-  for(let i=0; i<daysCount; i++) {
-    const d = new Date(minDate); d.setDate(d.getDate() + i);
-    const isSat = d.getDay() === 6; const isSun = d.getDay() === 0;
-    const isToday = d.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
-    html += `<div class="gantt-day-cell ${isSat?'sat':''} ${isSun?'sun':''} ${isToday?'today':''}">${d.getMonth()+1}/${d.getDate()}</div>`;
+  let html = `<div style="width:${totalWidth+220}px;"><div class="gantt-header"><div class="gantt-label-col">タスク名</div><div class="gantt-days">`;
+  for(let i=0; i<daysCount; i++){
+    const d = new Date(minDate); d.setDate(d.getDate()+i);
+    const isSat = d.getDay()===6; const isSun = d.getDay()===0;
+    html += `<div class="gantt-day-cell ${isSat?'sat':''} ${isSun?'sun':''}">${d.getMonth()+1}/${d.getDate()}</div>`;
   }
   html += `</div></div>`;
   items.forEach(t => {
     const tStart = new Date(t.start); const tEnd = new Date(t.end);
     const offset = Math.floor((tStart - minDate) / (1000*60*60*24)) * dayWidth;
     const duration = (Math.ceil((tEnd - tStart) / (1000*60*60*24)) + 1) * dayWidth;
-    html += `<div class="gantt-row"><div class="gantt-task-label">${t.title}</div><div class="gantt-grid">
-      <div class="gantt-bar ${t.done?'done':''}" style="left:${offset}px; width:${duration}px;" onclick="openModal(${t.id})">${t.title}</div>
+    html += `<div class="gantt-row"><div class="gantt-task-label">${t.name || t.title}</div><div class="gantt-grid">
+      <div class="gantt-bar" style="left:${offset}px; width:${duration}px;" onclick="openModal(${t.id})">${t.name || t.title}</div>
     </div></div>`;
   });
   container.innerHTML = html + `</div>`;
 }
 
-function renderMembers() {
-  document.getElementById('member-grid').innerHTML = members.map(m => `
-    <div class="member-card">
-      <div class="member-name"><span>👤 ${m.name}</span><button onclick="deleteMember(${m.id})">削除</button></div>
-      <textarea class="member-week-input" oninput="onMemberNoteChange(${m.id}, this.value)">${m.weekNote || ''}</textarea>
-    </div>
-  `).join('');
-}
-
 function renderMemos() {
-  document.getElementById('memo-list').innerHTML = memos.map(m => `
-    <div class="memo-card"><div class="memo-content">${m.content}</div><button onclick="deleteMemo(${m.id})" style="position:absolute;top:8px;right:8px;">×</button></div>
+  if(!db.memos) return;
+  document.getElementById('memo-list').innerHTML = db.memos.map(m => `
+    <div class="memo-card">
+      <div style="font-size:14px; white-space:pre-wrap;">${m.text || m.content}</div>
+      <div style="font-size:10px; color:var(--text3); margin-top:8px;">${new Date(m.createdAt).toLocaleString()}</div>
+    </div>
   `).join('');
 }
 
