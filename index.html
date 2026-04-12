@@ -141,11 +141,27 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .member-reg-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
 .member-reg-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .member-reg-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:var(--radius);border:.5px solid var(--border)}
-.member-reg-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.member-reg-icon-preview{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 .member-reg-name{flex:1;font-size:13px;font-weight:500}
-.member-reg-add{display:flex;gap:8px;align-items:center}
-.member-reg-add input{flex:1;padding:8px 12px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;transition:border-color .15s}
+.member-reg-add{display:flex;flex-direction:column;gap:8px}
+.member-reg-add input{width:100%;padding:8px 12px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;transition:border-color .15s}
 .member-reg-add input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+/* カラーピッカー */
+.color-picker-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.color-picker-label{font-size:11px;font-weight:700;color:var(--text2);width:100%}
+.color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.color-swatch:hover{transform:scale(1.2)}
+.color-swatch.selected{border-color:#fff;box-shadow:0 0 0 2px var(--text),0 0 0 3px transparent;transform:scale(1.15)}
+/* アイコンピッカー */
+.icon-picker-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.icon-picker-label{font-size:11px;font-weight:700;color:var(--text2);width:100%}
+.icon-swatch{width:34px;height:34px;border-radius:8px;cursor:pointer;border:1.5px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s}
+.icon-swatch:hover{background:var(--accent-bg);border-color:var(--accent);transform:scale(1.1)}
+.icon-swatch.selected{background:var(--accent-bg);border-color:var(--accent);box-shadow:0 0 0 2px rgba(42,92,170,.3)}
+/* プレビュー */
+.member-preview{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:var(--radius);border:.5px dashed var(--border2);margin-bottom:4px}
+.member-preview-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.member-preview-name{font-size:13px;font-weight:500;color:var(--text2)}
 
 /* gantt */
 .gantt-scroll-wrapper{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
@@ -459,8 +475,25 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div class="member-reg-title">👥 メンバー登録 <span style="font-size:11px;font-weight:400;color:var(--text3)">（最大5人）</span></div>
       <div class="member-reg-list" id="member-reg-list"></div>
       <div class="member-reg-add" id="member-reg-add">
-        <input type="text" id="member-reg-input" placeholder="メンバーの名前を入力..." onkeydown="if(event.key==='Enter')addMember()">
-        <button class="btn btn-primary" style="width:auto" onclick="addMember()">＋ 追加</button>
+        <!-- プレビュー -->
+        <div class="member-preview">
+          <div class="member-preview-icon" id="preview-icon-el" style="background:#e8eef8">🙂</div>
+          <span class="member-preview-name" id="preview-name-el">名前を入力してください</span>
+        </div>
+        <input type="text" id="member-reg-input" placeholder="メンバーの名前を入力..."
+          oninput="updateMemberPreview()"
+          onkeydown="if(event.key==='Enter')addMember()">
+        <!-- カラー選択 -->
+        <div class="color-picker-row">
+          <span class="color-picker-label">🎨 カラー</span>
+          <div id="color-swatches"></div>
+        </div>
+        <!-- アイコン選択 -->
+        <div class="icon-picker-row">
+          <span class="icon-picker-label">🖼 アイコン</span>
+          <div id="icon-swatches" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+        </div>
+        <button class="btn btn-primary" onclick="addMember()">＋ メンバーを追加</button>
       </div>
     </div>
     <div style="font-size:12px;color:var(--text3);text-align:center;padding:1rem">
@@ -536,8 +569,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <h2 id="member-task-modal-title">メンバータスク入力</h2>
       <button class="icon-btn" onclick="closeMemberTaskModal()" style="font-size:18px;width:30px;height:30px">×</button>
     </div>
-    <div class="member-task-header">
-      <span style="font-size:18px">👤</span>
+    <div class="member-task-header" id="member-task-header">
+      <span class="member-task-icon" id="member-task-icon" style="font-size:22px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">🙂</span>
       <div>
         <div class="member-task-who" id="member-task-who"></div>
         <div class="member-task-week" id="member-task-week"></div>
@@ -993,17 +1026,88 @@ function getNextWeekKey(tueDStr){
   const d=new Date(tueDStr);d.setDate(d.getDate()+7);return dStr(d);
 }
 
+// ── メンバー カラー・アイコン定義 ───────────────────
+const MEMBER_COLORS=[
+  {id:'blue',  hex:'#2a5caa',light:'#e8eef8'},
+  {id:'teal',  hex:'#0e7490',light:'#e0f4f8'},
+  {id:'green', hex:'#1a7a52',light:'#e4f3ec'},
+  {id:'lime',  hex:'#4d7c0f',light:'#ecfccb'},
+  {id:'amber', hex:'#b45309',light:'#fef3c7'},
+  {id:'orange',hex:'#c2410c',light:'#ffedd5'},
+  {id:'red',   hex:'#b03a2e',light:'#faeae8'},
+  {id:'pink',  hex:'#9d174d',light:'#fce7f3'},
+  {id:'purple',hex:'#6d28d9',light:'#ede9fe'},
+  {id:'indigo',hex:'#4338ca',light:'#e0e7ff'},
+  {id:'rose',  hex:'#e11d48',light:'#ffe4e6'},
+  {id:'slate', hex:'#475569',light:'#f1f5f9'},
+];
+const MEMBER_ICONS=[
+  '🙂','😊','😎','🤓','🥳','😇','🤩','🥸',
+  '👨','👩','👦','👧','🧑','👱','🧔','👩‍💼',
+  '👨‍💼','👩‍🔬','👨‍🔬','👩‍🎨','👨‍🎨','👩‍💻','👨‍💻','👩‍🏫',
+  '⭐','🌟','🔥','💎','🎯','🚀','🌈','🦋',
+];
+let selectedColor=MEMBER_COLORS[0];
+let selectedIcon=MEMBER_ICONS[0];
+
+function initMemberPickers(){
+  // カラー
+  const cs=document.getElementById('color-swatches');
+  if(cs){
+    cs.style.cssText='display:flex;gap:5px;flex-wrap:wrap';
+    cs.innerHTML=MEMBER_COLORS.map(c=>`
+      <div class="color-swatch${c.id===selectedColor.id?' selected':''}"
+        style="background:${c.hex}"
+        onclick="selectMemberColor('${c.id}')"
+        title="${c.id}"></div>`).join('');
+  }
+  // アイコン
+  const is=document.getElementById('icon-swatches');
+  if(is){
+    is.innerHTML=MEMBER_ICONS.map(ic=>`
+      <div class="icon-swatch${ic===selectedIcon?' selected':''}"
+        onclick="selectMemberIcon('${ic}')">${ic}</div>`).join('');
+  }
+  updateMemberPreview();
+}
+function selectMemberColor(colorId){
+  selectedColor=MEMBER_COLORS.find(c=>c.id===colorId)||MEMBER_COLORS[0];
+  document.querySelectorAll('.color-swatch').forEach(el=>{
+    el.classList.toggle('selected',el.title===colorId);
+  });
+  updateMemberPreview();
+}
+function selectMemberIcon(icon){
+  selectedIcon=icon;
+  document.querySelectorAll('.icon-swatch').forEach(el=>{
+    el.classList.toggle('selected',el.textContent===icon);
+  });
+  updateMemberPreview();
+}
+function updateMemberPreview(){
+  const inp=document.getElementById('member-reg-input');
+  const nameEl=document.getElementById('preview-name-el');
+  const iconEl=document.getElementById('preview-icon-el');
+  if(nameEl)nameEl.textContent=inp?.value.trim()||'名前を入力してください';
+  if(iconEl){iconEl.textContent=selectedIcon;iconEl.style.background=selectedColor.light;}
+}
+
 // ── メンバー管理 ──────────────────────────────────────
 async function addMember(){
   if(members.length>=5){alert('メンバーは最大5人まで登録できます');return;}
   const inp=document.getElementById('member-reg-input');
   if(!inp)return;
   const name=inp.value.trim();if(!name)return;
-  members.push({id:nextMemberId++,name,weeks:{},createdAt:Date.now()});
+  members.push({
+    id:nextMemberId++,name,weeks:{},createdAt:Date.now(),
+    color:selectedColor.hex,colorLight:selectedColor.light,colorId:selectedColor.id,
+    icon:selectedIcon
+  });
   inp.value='';
+  updateMemberPreview();
   await save();
   renderMemberTab();
-  render();// メンバータスクボタンの有効化
+  render();
 }
 async function deleteMember(id){
   const m=members.find(m=>m.id===id);
@@ -1011,6 +1115,22 @@ async function deleteMember(id){
     members=members.filter(m=>m.id!==id);await save();renderMemberTab();render();
   });
 }
+// メンバーの並び替え（一覧・ガント連動）
+async function moveMemberUp(id){
+  const idx=members.findIndex(m=>m.id===id);if(idx<=0)return;
+  [members[idx-1],members[idx]]=[members[idx],members[idx-1]];
+  await save();renderMemberTab();render();
+}
+async function moveMemberDown(id){
+  const idx=members.findIndex(m=>m.id===id);if(idx<0||idx>=members.length-1)return;
+  [members[idx],members[idx+1]]=[members[idx+1],members[idx]];
+  await save();renderMemberTab();render();
+}
+
+// メンバーアイコン表示用ヘルパー
+function getMemberIcon(m){return m.icon||'👤';}
+function getMemberColor(m){return m.color||'#6a9fd8';}
+function getMemberColorLight(m){return m.colorLight||'#eef4fb';}
 
 // ── メンバー選択モーダル ──────────────────────────────
 function openMemberSelect(){
@@ -1018,7 +1138,7 @@ function openMemberSelect(){
   const list=document.getElementById('member-select-list');
   list.innerHTML=members.map(m=>`
     <div class="member-select-item" onclick="selectMemberForTask(${m.id})">
-      <span class="member-select-icon">👤</span>
+      <span class="member-select-icon" style="background:${getMemberColorLight(m)};border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px">${getMemberIcon(m)}</span>
       <span class="member-select-name">${escHtml2(m.name)}</span>
       <span style="font-size:10px;color:var(--text3)">${m.weeks&&m.weeks[getWeekKey()]?'入力済み ✓':'未入力'}</span>
     </div>`).join('');
@@ -1037,9 +1157,16 @@ function openMemberTaskModal(memberId,weekKey){
   memberTaskTargetId=memberId;
   memberTaskTargetWeekKey=weekKey;
   const m=members.find(m=>m.id===memberId);if(!m)return;
+  const mColor=getMemberColor(m);
+  const mColorLight=getMemberColorLight(m);
   document.getElementById('member-task-modal-title').textContent=`${m.name} のタスク入力`;
   document.getElementById('member-task-who').textContent=m.name;
+  document.getElementById('member-task-who').style.color=mColor;
   document.getElementById('member-task-week').textContent=getWeekLabel(weekKey)+(isCurrentWeek(weekKey)?' ［今週］':'');
+  const hdr=document.getElementById('member-task-header');
+  if(hdr){hdr.style.background=mColorLight;hdr.style.borderColor=mColor+'80';}
+  const iconEl=document.getElementById('member-task-icon');
+  if(iconEl){iconEl.textContent=getMemberIcon(m);iconEl.style.background=mColorLight;}
   const existing=m.weeks&&m.weeks[weekKey]?m.weeks[weekKey]:'';
   document.getElementById('member-task-input').value=existing;
   document.getElementById('member-task-overlay').classList.add('open');
@@ -1063,24 +1190,18 @@ async function saveMemberTask(){
 function deleteMemberWeekTask(memberId,weekKey){
   confirmDelete('この週のタスクを削除しますか？\n（メンバー登録は維持されます）',async()=>{
     const m=members.find(m=>m.id===memberId);
-    if(m&&m.weeks){
-      m.weeks[weekKey]=''; // 空にする（枠は残す）
-    }
+    if(m&&m.weeks){m.weeks[weekKey]='';}
     await save();render();
   });
 }
 
-// ── 過去週へ移動（一覧） ──────────────────────────────
+// ── 過去週・次週移動 ──────────────────────────────────
 function goToPastWeek(memberId,currentWeekKey){
-  const prevKey=getPrevWeekKey(currentWeekKey);
-  openMemberTaskModal(memberId,prevKey);
+  openMemberTaskModal(memberId,getPrevWeekKey(currentWeekKey));
 }
-
-// ── 次週へ移動（一覧） ────────────────────────────────
 function goToNextWeek(memberId,currentWeekKey){
   const nextKey=getNextWeekKey(currentWeekKey);
-  const isNext=nextKey>getWeekKey();
-  if(isNext){
+  if(nextKey>getWeekKey()){
     if(!confirm('次週の情報に更新しますか？'))return;
   }
   openMemberTaskModal(memberId,nextKey);
@@ -1097,11 +1218,18 @@ function renderMemberTasksInline(){
     if(!m.weeks)m.weeks={};
     const tasks_text=m.weeks[currentWeekKey]||'';
     const hasTask=tasks_text.trim().length>0;
-    html+=`<div class="member-list-block" id="mblock-${m.id}">
-      <div class="member-list-hdr" onclick="toggleMemberBlock(${m.id})">
-        <span style="font-size:10px;color:#6a9fd8;width:14px" id="marrow-${m.id}">▼</span>
-        <span class="member-list-name">👤 ${escHtml2(m.name)}</span>
-        ${hasTask?'<span style="font-size:9px;background:#eef4fb;color:#3a6fa5;border-radius:999px;padding:1px 8px;font-weight:500">今週入力済み</span>':'<span style="font-size:9px;color:var(--text3)">未入力</span>'}
+    const mColor=getMemberColor(m);
+    const mColorLight=getMemberColorLight(m);
+    const mIcon=getMemberIcon(m);
+    html+=`<div class="member-list-block" id="mblock-${m.id}" style="border-color:${mColor}80">
+      <div class="member-list-hdr" onclick="toggleMemberBlock(${m.id})" style="background:${mColorLight}">
+        <span style="font-size:10px;color:${mColor};width:14px" id="marrow-${m.id}">▼</span>
+        <span style="font-size:18px;margin-right:2px">${mIcon}</span>
+        <span class="member-list-name" style="color:${mColor}">${escHtml2(m.name)}</span>
+        ${hasTask
+          ?`<span style="font-size:9px;background:${mColor};color:#fff;border-radius:999px;padding:1px 8px;font-weight:500">今週入力済み</span>`
+          :`<span style="font-size:9px;color:var(--text3)">未入力</span>`
+        }
       </div>
       <div id="mbody-${m.id}" style="display:block">
         <div class="member-list-body">
@@ -1112,7 +1240,7 @@ function renderMemberTasksInline(){
           }
           <div class="member-list-actions">
             <button class="btn-week-nav" onclick="goToPastWeek(${m.id},'${currentWeekKey}')">◀ 過去週</button>
-            <button class="btn-week-nav next" onclick="goToNextWeek(${m.id},'${currentWeekKey}')">次週へ ▶</button>
+            <button class="btn-week-nav next" onclick="goToNextWeek(${m.id},'${currentWeekKey}')" style="background:${mColorLight};color:${mColor};border-color:${mColor}">次週へ ▶</button>
             <button class="btn-week-nav" onclick="openMemberTaskModal(${m.id},'${currentWeekKey}')" style="margin-left:auto;background:var(--surface2);border-color:var(--border2)">✏ 編集</button>
             <button class="icon-btn del" onclick="deleteMemberWeekTask(${m.id},'${currentWeekKey}')" title="この週のタスクを削除">🗑</button>
           </div>
@@ -1143,10 +1271,14 @@ function renderMemberTab(){
   if(!list)return;
   if(members.length){
     list.innerHTML=members.map((m,i)=>`
-      <div class="member-reg-item">
-        <div class="member-reg-num">${i+1}</div>
-        <div class="member-reg-name">${escHtml2(m.name)}</div>
-        <button class="icon-btn del" onclick="deleteMember(${m.id})" title="削除">🗑</button>
+      <div class="member-reg-item" style="border-left:3px solid ${getMemberColor(m)}">
+        <div class="member-reg-icon-preview" style="background:${getMemberColorLight(m)}">${getMemberIcon(m)}</div>
+        <div class="member-reg-name" style="color:${getMemberColor(m)}">${escHtml2(m.name)}</div>
+        <div style="display:flex;gap:2px;flex-shrink:0">
+          <button class="icon-btn" onclick="moveMemberUp(${m.id})" title="上へ" ${i===0?'disabled style="opacity:.3"':''}>↑</button>
+          <button class="icon-btn" onclick="moveMemberDown(${m.id})" title="下へ" ${i===members.length-1?'disabled style="opacity:.3"':''}>↓</button>
+          <button class="icon-btn del" onclick="deleteMember(${m.id})" title="削除">🗑</button>
+        </div>
       </div>`).join('');
   }else{
     list.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px 0">メンバーがまだいません</div>';
@@ -1157,7 +1289,7 @@ function renderMemberTab(){
     if(inp){inp.disabled=!canAdd;inp.placeholder=canAdd?'メンバーの名前を入力...':'最大5人まで登録済み';inp.style.opacity=canAdd?'1':'.5';}
     addArea.style.display=canAdd?'flex':'none';
   }
-  // メンバータスクボタンの有効/無効
+  initMemberPickers();
   updateMemberTaskBtn();
 }
 
@@ -1266,11 +1398,12 @@ function renderGantt(){
   const tops=tasks.filter(t=>!t.parentId);
   const activeTops=tops.filter(t=>!isTopDone(t));
   const doneTops=tops.filter(t=>isTopDone(t));
-  const orderedTops=[...activeTops,...doneTops];
 
   let colorIdx=0;
   let rowsHTML='';
-  orderedTops.forEach(t=>{
+
+  // ── アクティブタスク ──────────────────────────────
+  activeTops.forEach(t=>{
     if(t.isGroup){
       const children=t.children.map(cid=>tasks.find(x=>x.id===cid)).filter(Boolean);
       const isOpen=!collapsedGroups.has(t.id);
@@ -1313,13 +1446,20 @@ function renderGantt(){
     }
   });
 
-  // ── メンバー行（ガント上） ──────────────────────────
+  // ── メンバー行（未完了・完了の間） ──────────────────
   if(members.length>0){
-    rowsHTML+=`<div style="margin:6px 0 2px;border-top:1.5px solid #6a9fd8;"></div>`;
+    rowsHTML+=`<div style="margin:4px 0 2px;display:flex;align-items:center;gap:6px">
+      <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,#6a9fd840,transparent)"></div>
+      <span style="font-size:9px;color:#6a9fd8;font-weight:700;letter-spacing:.05em;white-space:nowrap">👥 メンバー</span>
+      <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,#6a9fd840,transparent)"></div>
+    </div>`;
     members.forEach(m=>{
       if(!m.weeks)m.weeks={};
       const wkTasks=m.weeks[currentWeekKey]||'';
       const hasTask=wkTasks.trim().length>0;
+      const mColor=getMemberColor(m);
+      const mColorLight=getMemberColorLight(m);
+      const mIcon=getMemberIcon(m);
       // バー：火曜〜月曜
       const wkStart=new Date(currentWeekKey);
       const wkEnd=new Date(getWeekEnd(currentWeekKey));
@@ -1327,31 +1467,39 @@ function renderGantt(){
       const eIdx=Math.min(totalDays-1,Math.round((wkEnd-minD)/86400000));
       const bLeft=sIdx*DW;
       const bW=Math.max(DW,(eIdx-sIdx+1)*DW);
-      const barColor='#6a9fd8';
-      const rowH=hasTask?54:36;
-      const bH=hasTask?42:24;
-      const bTop=Math.floor((rowH-bH)/2);
-      // タスクテキスト（最初の1〜2行）
-      const firstLines=wkTasks.split('\n').filter(Boolean).slice(0,2).join(' / ');
-      const barLabel=hasTask?firstLines:'タスク未入力';
-      const barOpacity=hasTask?1:0.35;
+      // テキスト行数に応じて高さを動的に計算
+      const lines=hasTask?wkTasks.split('\n').filter(Boolean):[];
+      // バー内に収まるように最大行数計算（1行14px、上下padding 8px）
+      const maxLines=Math.min(lines.length,Math.max(2,Math.floor(bW/60)));// 横幅に応じて行数制限
+      const visibleLines=lines.slice(0,maxLines);
+      const lineH=15;
+      const bH=Math.max(36,visibleLines.length*lineH+20);
+      const rowH=bH+12;
+      const barOpacity=hasTask?0.92:0.3;
+      // バー内テキスト：折り返し対応
+      const barInnerHTML=hasTask
+        ?`<div style="position:absolute;inset:0;padding:5px 7px;overflow:hidden;display:flex;flex-direction:column;gap:1px">
+            ${visibleLines.map((ln,i)=>`<div style="font-size:10px;color:#fff;font-weight:${i===0?'600':'400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4">${escHtml2(ln)}</div>`).join('')}
+            ${lines.length>maxLines?`<div style="font-size:9px;color:rgba(255,255,255,.7)">…他${lines.length-maxLines}件</div>`:''}
+          </div>`
+        :`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.8)">（未入力）</div>`;
 
-      const ganttBar=`<div class="gantt-bar"
-        style="left:${bLeft}px;width:${bW}px;height:${bH}px;top:${bTop}px;background:${barColor};opacity:${barOpacity};border-radius:5px;cursor:pointer"
+      const ganttBar=`<div style="position:absolute;left:${bLeft}px;width:${bW}px;height:${bH}px;top:6px;background:${mColor};opacity:${barOpacity};border-radius:6px;cursor:pointer"
         onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')"
-        title="${escHtml2(m.name+': '+(wkTasks||'タスク未入力'))}">${escHtml2(m.name+(hasTask?'：'+barLabel:'（未入力）'))}</div>`;
+        title="${escHtml2(m.name+': '+(wkTasks||'タスク未入力'))}">${barInnerHTML}</div>`;
 
-      rowsHTML+=`<div class="gantt-member-wrap" id="gm-${m.id}">
-        <div class="gantt-member-hdr">
-          <div style="width:22px;flex-shrink:0"></div>
-          <div class="gantt-row-name" style="width:${colName}px;font-weight:700;color:#3a6fa5" onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')">👤 ${escHtml2(m.name)}</div>
+      rowsHTML+=`<div class="gantt-member-wrap" id="gm-${m.id}" style="border-color:${mColor}80">
+        <div class="gantt-member-hdr" style="background:${mColorLight}">
+          <div class="gantt-drag-handle" style="cursor:default;color:${mColor}80">⠿</div>
+          <div style="font-size:16px;width:18px;text-align:center;flex-shrink:0">${mIcon}</div>
+          <div class="gantt-row-name" style="width:${colName-18}px;font-weight:700;color:${mColor}" onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')">${escHtml2(m.name)}</div>
           <div class="gantt-row-member" style="width:${colMember}px;font-size:9px;color:var(--text3)">${getWeekLabel(currentWeekKey)}</div>
-          <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden">
+          <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden;position:relative">
             ${dayBgs}${todayLine}${ganttBar}
-            <div style="position:absolute;right:4px;bottom:4px;display:flex;gap:4px;z-index:5">
-              <button style="font-size:9px;padding:2px 6px;border-radius:4px;border:.5px solid #aac;background:rgba(255,255,255,.85);cursor:pointer;color:#3a6fa5"
+            <div style="position:absolute;right:4px;top:4px;display:flex;gap:3px;z-index:5">
+              <button style="font-size:9px;padding:2px 5px;border-radius:4px;border:.5px solid ${mColor}60;background:rgba(255,255,255,.9);cursor:pointer;color:${mColor};font-weight:500"
                 onclick="event.stopPropagation();goGanttPastWeek(${m.id},'${currentWeekKey}')">◀ 過去週</button>
-              <button style="font-size:9px;padding:2px 6px;border-radius:4px;border:.5px solid var(--accent);background:rgba(232,238,248,.9);cursor:pointer;color:var(--accent)"
+              <button style="font-size:9px;padding:2px 5px;border-radius:4px;border:.5px solid ${mColor};background:${mColorLight};cursor:pointer;color:${mColor};font-weight:500"
                 onclick="event.stopPropagation();goGanttNextWeek(${m.id},'${currentWeekKey}')">次週へ ▶</button>
             </div>
           </div>
@@ -1359,6 +1507,49 @@ function renderGantt(){
       </div>`;
     });
   }
+
+  // ── 完了済みタスク ────────────────────────────────
+  doneTops.forEach(t=>{
+    if(t.isGroup){
+      const children=t.children.map(cid=>tasks.find(x=>x.id===cid)).filter(Boolean);
+      const isOpen=!collapsedGroups.has(t.id);
+      const grpDone=isTopDone(t);
+      const gs=new Date(t.start),ge=new Date(t.end);
+      const gSIdx=Math.max(0,Math.round((gs-minD)/86400000));
+      const gEIdx=Math.min(totalDays-1,Math.round((ge-minD)/86400000));
+      const gLeft=gSIdx*DW,gW=Math.max(DW,(gEIdx-gSIdx+1)*DW);
+      const gOOR=ge<minD||gs>maxD;
+      const gBar=gOOR?'':`<div style="position:absolute;left:${gLeft}px;width:${gW}px;height:6px;top:11px;background:#c0bfba;opacity:.5;border-radius:3px"></div>`;
+      rowsHTML+=`<div class="gantt-group-wrap grp-done" id="gg-${t.id}">
+        <div class="gantt-group-hdr" data-gid="${t.id}" draggable="true">
+          <div class="gantt-drag-handle">⠿</div>
+          <div style="font-size:10px;color:var(--text2);width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .15s;transform:rotate(${isOpen?90:0}deg)" id="gtog-${t.id}" onclick="event.stopPropagation();toggleGanttGroup(${t.id})">▶</div>
+          <div class="gantt-row-name done-text" style="width:${colName-18}px;font-weight:700" onclick="openModal(${t.id})">📁 ${t.name}</div>
+          <div class="gantt-row-member" style="width:${colMember}px;color:var(--text3)">${t.start}〜${t.end}</div>
+          <div class="gantt-bar-area" style="width:${BAW}px;height:28px;overflow:hidden">${dayBgs}${todayLine}${gBar}</div>
+        </div>
+        <div id="ggbody-${t.id}" style="display:${isOpen?'block':'none'}">
+          <div class="gantt-group-body">`;
+      children.forEach(c=>{
+        const {bar,rowH}=makeBar(c,colorIdx++,colName-18);
+        rowsHTML+=`<div class="gantt-row" data-id="${c.id}" data-parent="${t.id}" draggable="true" style="height:${rowH}px">
+          <div class="gantt-drag-handle">⠿</div>
+          <div class="gantt-row-name${c.done?' done-text':''}" style="width:${colName-18}px" onclick="openModal(${c.id})">${c.name}</div>
+          <div class="gantt-row-member" style="width:${colMember}px">${c.members||'—'}</div>
+          <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden">${dayBgs}${todayLine}${bar}</div>
+        </div>`;
+      });
+      rowsHTML+=`</div></div></div>`;
+    }else{
+      const {bar,rowH}=makeBar(t,colorIdx++,colName);
+      rowsHTML+=`<div class="gantt-row" data-id="${t.id}" draggable="true" style="height:${rowH}px">
+        <div class="gantt-drag-handle">⠿</div>
+        <div class="gantt-row-name${t.done?' done-text':''}" style="width:${colName}px" onclick="openModal(${t.id})">${t.name}</div>
+        <div class="gantt-row-member" style="width:${colMember}px">${t.members||'—'}</div>
+        <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden">${dayBgs}${todayLine}${bar}</div>
+      </div>`;
+    }
+  });
 
   // ガント全体の幅
   const totalW=22+colName+colMember+BAW;
@@ -1684,6 +1875,11 @@ window.startEditMemo=startEditMemo;
 window.spSwitchTab=spSwitchTab;
 window.addMember=addMember;
 window.deleteMember=deleteMember;
+window.moveMemberUp=moveMemberUp;
+window.moveMemberDown=moveMemberDown;
+window.selectMemberColor=selectMemberColor;
+window.selectMemberIcon=selectMemberIcon;
+window.updateMemberPreview=updateMemberPreview;
 window.openMemberSelect=openMemberSelect;
 window.closeMemberSelect=closeMemberSelect;
 window.selectMemberForTask=selectMemberForTask;
@@ -1710,7 +1906,7 @@ document.getElementById('confirm-overlay').addEventListener('click',e=>{if(e.tar
 document.getElementById('member-select-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('member-select-overlay'))closeMemberSelect();});
 document.getElementById('member-task-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('member-task-overlay'))closeMemberTaskModal();});
 let rTimer;window.addEventListener('resize',()=>{clearTimeout(rTimer);rTimer=setTimeout(renderGantt,120);});
-load();
+load().then(()=>initMemberPickers());
 </script>
 </body>
 </html>
