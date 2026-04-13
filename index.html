@@ -1222,48 +1222,7 @@ function goToNextWeek(memberId,currentWeekKey){
 }
 
 // ── 一覧：メンバータスク表示 ──────────────────────────
-function renderMemberTasksInline(){
-  const el=document.getElementById('list-member-tasks');if(!el)return;
-  if(!members.length){el.innerHTML='';return;}
-
-  const currentWeekKey=getWeekKey();
-  let html='';
-  members.forEach(m=>{
-    if(!m.weeks)m.weeks={};
-    const tasks_text=m.weeks[currentWeekKey]||'';
-    const hasTask=tasks_text.trim().length>0;
-    const mColor=getMemberColor(m);
-    const mColorLight=getMemberColorLight(m);
-    const mIcon=getMemberIcon(m);
-    html+=`<div class="member-list-block" id="mblock-${m.id}" style="border-color:${mColor}80">
-      <div class="member-list-hdr" onclick="toggleMemberBlock(${m.id})" style="background:${mColorLight}">
-        <span style="font-size:10px;color:${mColor};width:14px" id="marrow-${m.id}">▼</span>
-        <span style="font-size:18px;margin-right:2px">${mIcon}</span>
-        <span class="member-list-name" style="color:${mColor}">${escHtml2(m.name)}</span>
-        ${hasTask
-          ?`<span style="font-size:9px;background:${mColor};color:#fff;border-radius:999px;padding:1px 8px;font-weight:500">今週入力済み</span>`
-          :`<span style="font-size:9px;color:var(--text3)">未入力</span>`
-        }
-      </div>
-      <div id="mbody-${m.id}" style="display:block">
-        <div class="member-list-body">
-          <div class="member-list-week">${getWeekLabel(currentWeekKey)} ［今週］</div>
-          ${hasTask
-            ?`<div class="member-list-tasks">${escHtml(tasks_text)}</div>`
-            :`<div class="member-list-empty">タスク未入力</div>`
-          }
-          <div class="member-list-actions">
-            <button class="btn-week-nav" onclick="goToPastWeek(${m.id},'${currentWeekKey}')">◀ 過去週</button>
-            <button class="btn-week-nav next" onclick="goToNextWeek(${m.id},'${currentWeekKey}')" style="background:${mColorLight};color:${mColor};border-color:${mColor}">次週へ ▶</button>
-            <button class="btn-week-nav" onclick="openMemberTaskModal(${m.id},'${currentWeekKey}')" style="margin-left:auto;background:var(--surface2);border-color:var(--border2)">✏ 編集</button>
-            <button class="icon-btn del" onclick="deleteMemberWeekTask(${m.id},'${currentWeekKey}')" title="この週のタスクを削除">🗑</button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  });
-
-  el.innerHTML=`<div style="margin-bottom:6px">
+el.innerHTML=`<div style="margin-bottom:6px">
     <div class="section-label" style="margin-top:.75rem">メンバー今週タスク <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${members.length}人)</span></div>
     <div style="display:flex;flex-direction:column;gap:5px">${html}</div>
   </div>`;
@@ -2012,6 +1971,10 @@ window.deleteMemberWeekTask=deleteMemberWeekTask;
 window.goToPastWeek=goToPastWeek;
 window.goToNextWeek=goToNextWeek;
 window.toggleMemberBlock=toggleMemberBlock;
+window.memberDragStart=memberDragStart;
+window.memberDragOver=memberDragOver;
+window.memberDragLeave=memberDragLeave;
+window.memberDrop=memberDrop;
 window.openGanttMemberModal=openGanttMemberModal;
 window.goGanttPastWeek=goGanttPastWeek;
 window.goGanttNextWeek=goGanttNextWeek;
