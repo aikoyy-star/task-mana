@@ -1640,7 +1640,7 @@ function toggleGanttGroupSplit(id){
 }
 
 function initGanttDrag(){
-  const container=document.getElementById('gantt-rows');if(!container)return;
+  const container=document.getElementById('gantt-fixed-rows');if(!container)return;
   let dragId=null,dragParent=null,dragIsGroup=false;
   container.querySelectorAll('.gantt-row').forEach(row=>{
     row.addEventListener('dragstart',e=>{
