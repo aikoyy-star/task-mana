@@ -1262,11 +1262,11 @@ function renderMemberTab(){
         <div id="member-edit-panel-${m.id}" style="display:none;padding:10px 12px;background:var(--bg);border-top:.5px solid var(--border);flex-direction:column;gap:8px">
           <div style="font-size:11px;font-weight:700;color:var(--text2)">🎨 カラー</div>
           <div style="display:flex;gap:5px;flex-wrap:wrap" id="edit-color-swatches-${m.id}">
-            ${MEMBER_COLORS.map(c=>`<div class="color-swatch${(m.colorId||'blue')===c.id?' selected':''}" style="background:${c.hex}" onclick="applyMemberColor(${m.id},'${c.id}')" title="${c.id}"></div>`).join('')}
+            ${MEMBER_COLORS.map(c=>'<div class="color-swatch'+((m.colorId||'blue')===c.id?' selected':'')+'" style="background:'+c.hex+'" onclick="applyMemberColor('+m.id+',\''+c.id+'\')" title="'+c.id+'"></div>').join('')}
           </div>
           <div style="font-size:11px;font-weight:700;color:var(--text2)">🖼 アイコン</div>
           <div style="display:flex;gap:5px;flex-wrap:wrap" id="edit-icon-swatches-${m.id}">
-            ${MEMBER_ICONS.map(ic=>`<div class="icon-swatch${getMemberIcon(m)===ic?' selected':''}" onclick="applyMemberIcon(${m.id},'${ic}')">${ic}</div>`).join('')}
+            ${MEMBER_ICONS.map(ic=>'<div class="icon-swatch'+(getMemberIcon(m)===ic?' selected':'')+'" onclick="applyMemberIcon('+m.id+',\''+ic+'\')">'+ ic+'</div>').join('')}
           </div>
           <button style="font-size:11px;padding:4px 12px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);cursor:pointer;align-self:flex-start" onclick="closeEditMemberPanel(${m.id})">✓ 完了</button>
         </div>
