@@ -1222,10 +1222,76 @@ function goToNextWeek(memberId,currentWeekKey){
 }
 
 // ── 一覧：メンバータスク表示 ──────────────────────────
-el.innerHTML=`<div style="margin-bottom:6px">
-    <div class="section-label" style="margin-top:.75rem">メンバー今週タスク <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(${members.length}人)</span></div>
-    <div style="display:flex;flex-direction:column;gap:5px">${html}</div>
-  </div>`;
+// ── 一覧：メンバータスク表示 ──────────────────────────
+function renderMemberTasksInline(){
+  const el=document.getElementById('list-member-tasks');if(!el)return;
+  if(!members.length){el.innerHTML='';return;}
+  const currentWeekKey=getWeekKey();
+  let html='';
+  members.forEach(m=>{
+    if(!m.weeks)m.weeks={};
+    const tasks_text=m.weeks[currentWeekKey]||'';
+    const hasTask=tasks_text.trim().length>0;
+    const mColor=getMemberColor(m);
+    const mColorLight=getMemberColorLight(m);
+    const mIcon=getMemberIcon(m);
+    html+='<div class="member-list-block" id="mblock-'+m.id+'" style="border-color:'+mColor+'80" draggable="true" ondragstart="memberDragStart(event,'+m.id+')" ondragover="memberDragOver(event,'+m.id+')" ondragleave="memberDragLeave(event)" ondrop="memberDrop(event,'+m.id+')">'
+      +'<div class="member-list-hdr" style="background:'+mColorLight+'">'
+      +'<span style="font-size:16px;color:'+mColor+';cursor:grab;padding:0 4px;display:flex;align-items:center" title="ドラッグで並び替え">⠿</span>'
+      +'<span style="font-size:10px;color:'+mColor+';width:14px;cursor:pointer" id="marrow-'+m.id+'" onclick="toggleMemberBlock('+m.id+')">▼</span>'
+      +'<span style="font-size:18px;margin-right:2px;cursor:pointer" onclick="toggleMemberBlock('+m.id+')">'+mIcon+'</span>'
+      +'<span class="member-list-name" style="color:'+mColor+';cursor:pointer;flex:1" onclick="toggleMemberBlock('+m.id+')">'+escHtml2(m.name)+'</span>'
+      +(hasTask?'<span style="font-size:9px;background:'+mColor+';color:#fff;border-radius:999px;padding:1px 8px;font-weight:500">今週入力済み</span>':'<span style="font-size:9px;color:var(--text3)">未入力</span>')
+      +'</div>'
+      +'<div id="mbody-'+m.id+'" style="display:block">'
+      +'<div class="member-list-body">'
+      +'<div class="member-list-week">'+getWeekLabel(currentWeekKey)+' ［今週］</div>'
+      +(hasTask?'<div class="member-list-tasks">'+escHtml(tasks_text)+'</div>':'<div class="member-list-empty">タスク未入力</div>')
+      +'<div class="member-list-actions">'
+      +'<button class="btn-week-nav" onclick="goToPastWeek('+m.id+',\''+currentWeekKey+'\')">◀ 過去週</button>'
+      +'<button class="btn-week-nav next" onclick="goToNextWeek('+m.id+',\''+currentWeekKey+'\')" style="background:'+mColorLight+';color:'+mColor+';border-color:'+mColor+'">次週へ ▶</button>'
+      +'<button class="btn-week-nav" onclick="openMemberTaskModal('+m.id+',\''+currentWeekKey+'\')" style="margin-left:auto;background:var(--surface2);border-color:var(--border2)">✏ 編集</button>'
+      +'<button class="icon-btn del" onclick="deleteMemberWeekTask('+m.id+',\''+currentWeekKey+'\')" title="この週のタスクを削除">🗑</button>'
+      +'</div></div></div></div>';
+  });
+  el.innerHTML='<div style="margin-bottom:6px">'
+    +'<div class="section-label" style="margin-top:.75rem">メンバー今週タスク <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">('+members.length+'人)</span></div>'
+    +'<div id="member-inline-list" style="display:flex;flex-direction:column;gap:5px">'+html+'</div>'
+    +'</div>';
+}
+
+let memberDragId=null;
+function memberDragStart(e,id){
+  memberDragId=id;
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>{const el=document.getElementById('mblock-'+id);if(el)el.style.opacity='.4';},0);
+}
+function memberDragOver(e,id){
+  e.preventDefault();
+  if(memberDragId===id)return;
+  document.querySelectorAll('.member-list-block').forEach(el=>el.style.boxShadow='');
+  const el=document.getElementById('mblock-'+id);if(!el)return;
+  const rect=el.getBoundingClientRect();
+  el.style.boxShadow=e.clientY<rect.top+rect.height/2?'0 -2px 0 var(--accent)':'0 2px 0 var(--accent)';
+}
+function memberDragLeave(e){
+  document.querySelectorAll('.member-list-block').forEach(el=>el.style.boxShadow='');
+}
+async function memberDrop(e,targetId){
+  e.preventDefault();
+  document.querySelectorAll('.member-list-block').forEach(el=>{el.style.boxShadow='';el.style.opacity='';});
+  if(memberDragId===null||memberDragId===targetId)return;
+  const fromIdx=members.findIndex(m=>m.id===memberDragId);
+  const toEl=document.getElementById('mblock-'+targetId);
+  const toIdx=members.findIndex(m=>m.id===targetId);
+  if(fromIdx<0||toIdx<0)return;
+  const rect=toEl?toEl.getBoundingClientRect():null;
+  const insertBefore=rect&&e.clientY<rect.top+rect.height/2;
+  const [moved]=members.splice(fromIdx,1);
+  const newToIdx=members.findIndex(m=>m.id===targetId);
+  members.splice(insertBefore?newToIdx:newToIdx+1,0,moved);
+  memberDragId=null;
+  await save();render();
 }
 
 function toggleMemberBlock(id){
