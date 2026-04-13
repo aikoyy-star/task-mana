@@ -387,7 +387,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div class="clock-date" id="clock-date"></div>
     <div class="clock-time" id="clock-time"></div>
   </div>
-  <div style="width:120px"></div>
+  <div style="width:120px;display:flex;justify-content:flex-end">
+    <button class="btn btn-ghost" onclick="exportCSV()" title="タスクをCSVで出力" style="font-size:12px;padding:5px 10px;gap:4px">📥 CSV出力</button>
+  </div>
 </header>
 <!-- スマホ用コンパクトstats -->
 <div class="sp-stats">
@@ -2015,7 +2017,45 @@ function render(){
   if(document.getElementById('tab-member').classList.contains('active'))renderMemberTab();
 }
 
-// ── window登録 ──────────────────────────────────────
+// ── CSV エクスポート ──────────────────────────────────
+function exportCSV(){
+  const today=todayStr();
+  const rows=[['タイプ','グループ名','タスク名','開始日','期限','担当者','優先度','工数','メモ','状態','期限超過']];
+  const tops=tasks.filter(t=>!t.parentId);
+  tops.forEach(t=>{
+    if(t.isGroup){
+      const grpStatus=t.done?'完了':'進行中';
+      const grpOver=!t.done&&t.end<today?'超過':'';
+      rows.push(['グループ','',t.name,t.start,t.end,'','','',t.memo||'',grpStatus,grpOver]);
+      t.children.forEach(cid=>{
+        const c=tasks.find(x=>x.id===cid);if(!c)return;
+        const pri=c.priority==='high'?'高':c.priority==='med'?'中':'低';
+        const wl=c.workload==='heavy'?'重い':c.workload==='light'?'軽い':'普通';
+        const status=c.done?'完了':'進行中';
+        const over=!c.done&&c.end<today?'超過':'';
+        rows.push(['タスク',t.name,c.name,c.start,c.end,c.members||'',pri,wl,c.memo||'',status,over]);
+      });
+    }else{
+      const pri=t.priority==='high'?'高':t.priority==='med'?'中':'低';
+      const wl=t.workload==='heavy'?'重い':t.workload==='light'?'軽い':'普通';
+      const status=t.done?'完了':'進行中';
+      const over=!t.done&&t.end<today?'超過':'';
+      rows.push(['タスク','',t.name,t.start,t.end,t.members||'',pri,wl,t.memo||'',status,over]);
+    }
+  });
+  const bom='\uFEFF';
+  const csv=bom+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const d=new Date();
+  const ds=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  a.download=`task-mana_${ds}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+window.exportCSV=exportCSV;
 window.openModal=openModal;
 window.closeModal=closeModal;
 window.saveTask=saveTask;
