@@ -165,13 +165,19 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
 /* gantt */
 .gantt-scroll-wrapper{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
-.gantt-scroll-top{overflow-x:scroll;overflow-y:hidden;height:16px;flex-shrink:0}
+/* 最上部スクロールバー */
+.gantt-scroll-top{overflow-x:scroll;overflow-y:hidden;height:14px;flex-shrink:0;border-bottom:.5px solid var(--border)}
 .gantt-scroll-top::-webkit-scrollbar{height:6px}
 .gantt-scroll-top::-webkit-scrollbar-track{background:var(--surface2);border-radius:3px}
 .gantt-scroll-top::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 .gantt-scroll-top::-webkit-scrollbar-thumb:hover{background:var(--text3)}
 .gantt-scroll-top-inner{height:1px}
-.gantt-scroll-main{overflow-x:scroll;overflow-y:auto;flex:1;min-height:0;scrollbar-width:none}
+/* ガント本体：左固定＋右スクロール */
+.gantt-body{display:flex;flex:1;min-height:0;overflow:hidden}
+.gantt-fixed-col{flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;border-right:1.5px solid var(--border2);background:var(--surface);z-index:5}
+.gantt-fixed-header{flex-shrink:0;border-bottom:.5px solid var(--border);background:var(--surface2);height:34px;display:flex;align-items:center}
+.gantt-fixed-rows{overflow:hidden;flex:1;display:flex;flex-direction:column}
+.gantt-scroll-main{overflow-x:scroll;overflow-y:auto;flex:1;min-height:0}
 .gantt-scroll-main::-webkit-scrollbar{display:none}
 .gantt-name-col-h{flex-shrink:0;font-size:10px;color:var(--text3);padding:0 4px 4px 26px;display:flex;align-items:center}
 .gantt-member-col-h{flex-shrink:0;font-size:10px;color:var(--text3);padding:0 4px 4px;display:flex;align-items:center}
@@ -679,10 +685,11 @@ let tasks=[],memos=[],members=[],nextId=1,nextMemoId=1,nextMemberId=1,editId=nul
 let colName=160,colMember=80;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const collapsedGroups=new Set();
-
 // ── メンバータスク入力用state ──────────────────────────
-let memberTaskTargetId=null; // 入力対象のメンバーID
-let memberTaskTargetWeekKey=null; // 入力対象の週キー
+let memberTaskTargetId=null;
+let memberTaskTargetWeekKey=null;
+// メモ→タスク化：キャンセル時メモ保持用
+let pendingMemoToTaskId=null;
 
 function showLoading(msg){
   const el=document.getElementById('loading-overlay');
@@ -798,7 +805,7 @@ function openModal(id,parentId){
   document.getElementById('overlay').classList.add('open');
   setTimeout(()=>document.getElementById('f-name').focus(),50);
 }
-function closeModal(){document.getElementById('overlay').classList.remove('open');}
+function closeModal(){document.getElementById('overlay').classList.remove('open');pendingMemoToTaskId=null;}
 let pendingCb=null;
 function confirmDelete(msg,cb){
   pendingCb=cb;document.getElementById('confirm-msg').textContent=msg;
@@ -826,6 +833,12 @@ async function saveTask(){
     if(editParentId){const p=tasks.find(t=>t.id===editParentId);if(p)p.children.push(nt.id);}
   }
   await save();closeModal();render();
+  // メモ→タスク化経由で保存した場合はメモを削除
+  if(pendingMemoToTaskId!==null){
+    memos=memos.filter(m=>m.id!==pendingMemoToTaskId);
+    pendingMemoToTaskId=null;
+    await save();renderMemos();
+  }
 }
 async function toggleDone(id,e){
   if(e)e.stopPropagation();
@@ -1399,60 +1412,84 @@ function renderGantt(){
   const activeTops=tops.filter(t=>!isTopDone(t));
   const doneTops=tops.filter(t=>isTopDone(t));
 
+  // ── 行HTML生成（左固定＋右バー分離方式） ────────────
   let colorIdx=0;
-  let rowsHTML='';
+  let fixedHTML=''; // 左固定列（ドラッグ・名前・関係者）
+  let barHTML='';   // 右スクロール列（バーエリアのみ）
 
-  // ── アクティブタスク ──────────────────────────────
-  activeTops.forEach(t=>{
-    if(t.isGroup){
-      const children=t.children.map(cid=>tasks.find(x=>x.id===cid)).filter(Boolean);
-      const isOpen=!collapsedGroups.has(t.id);
-      const anyOver=children.some(c=>!c.done&&c.end<td)||(!t.done&&t.end<td);
-      const grpDone=isTopDone(t);
-      const gs=new Date(t.start),ge=new Date(t.end);
-      const gSIdx=Math.max(0,Math.round((gs-minD)/86400000));
-      const gEIdx=Math.min(totalDays-1,Math.round((ge-minD)/86400000));
-      const gLeft=gSIdx*DW,gW=Math.max(DW,(gEIdx-gSIdx+1)*DW);
-      const gOOR=ge<minD||gs>maxD;
-      const gBar=gOOR?'':`<div style="position:absolute;left:${gLeft}px;width:${gW}px;height:6px;top:11px;background:${grpDone?'#c0bfba':'#5a6e8a'};opacity:.5;border-radius:3px"></div>`;
-      rowsHTML+=`<div class="gantt-group-wrap${grpDone?' grp-done':''}" id="gg-${t.id}">
-        <div class="gantt-group-hdr${anyOver?' grp-overdue':''}" data-gid="${t.id}" draggable="true">
-          <div class="gantt-drag-handle">⠿</div>
-          <div style="font-size:10px;color:var(--text2);width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .15s;transform:rotate(${isOpen?90:0}deg)" id="gtog-${t.id}" onclick="event.stopPropagation();toggleGanttGroup(${t.id})">▶</div>
-          <div class="gantt-row-name" style="width:${colName-18}px;font-weight:700" onclick="openModal(${t.id})">📁 ${t.name}</div>
-          <div class="gantt-row-member" style="width:${colMember}px;color:var(--text3)">${t.start}〜${t.end}</div>
-          <div class="gantt-bar-area" style="width:${BAW}px;height:28px;overflow:hidden">${dayBgs}${todayLine}${gBar}</div>
-        </div>
-        <div id="ggbody-${t.id}" style="display:${isOpen?'block':'none'}">
-          <div class="gantt-group-body">`;
+  function addTaskRow(t,parentId,isDraggable){
+    const {bar,rowH}=makeBar(t,colorIdx++,colName);
+    const doneClass=t.done?' done-text':'';
+    fixedHTML+=`<div class="gantt-row${parentId?'-child':''}" data-id="${t.id}"${parentId?` data-parent="${parentId}"`:''}${isDraggable?' draggable="true"':''} style="height:${rowH}px;display:flex;align-items:center;border-radius:4px;transition:background .12s;user-select:none">
+      <div class="gantt-drag-handle">⠿</div>
+      <div class="gantt-row-name${doneClass}" style="width:${colName}px" onclick="openModal(${t.id})">${t.name}</div>
+      <div class="gantt-row-member" style="width:${colMember}px">${t.members||'—'}</div>
+    </div>`;
+    barHTML+=`<div style="height:${rowH}px;overflow:hidden;position:relative">
+      <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden">${dayBgs}${todayLine}${bar}</div>
+    </div>`;
+  }
+
+  function addGroupRows(t,isDone){
+    const children=t.children.map(cid=>tasks.find(x=>x.id===cid)).filter(Boolean);
+    const isOpen=!collapsedGroups.has(t.id);
+    const anyOver=!isDone&&(children.some(c=>!c.done&&c.end<td)||(!t.done&&t.end<td));
+    const gs=new Date(t.start),ge=new Date(t.end);
+    const gSIdx=Math.max(0,Math.round((gs-minD)/86400000));
+    const gEIdx=Math.min(totalDays-1,Math.round((ge-minD)/86400000));
+    const gLeft=gSIdx*DW,gW=Math.max(DW,(gEIdx-gSIdx+1)*DW);
+    const gOOR=ge<minD||gs>maxD;
+    const gBarColor=isDone?'#c0bfba':'#5a6e8a';
+    const gBar=gOOR?'':`<div style="position:absolute;left:${gLeft}px;width:${gW}px;height:6px;top:11px;background:${gBarColor};opacity:.5;border-radius:3px"></div>`;
+    const hdrBg=anyOver?'var(--red-bg)':isDone?'var(--surface2)':'var(--accent-bg)';
+    const hdrBorder=anyOver?'border-left:3px solid var(--red)':'';
+    // 固定側：グループヘッダー
+    fixedHTML+=`<div class="gantt-group-wrap${isDone?' grp-done':''}" id="gg-${t.id}">
+      <div class="gantt-group-hdr" data-gid="${t.id}" draggable="true" style="display:flex;align-items:center;background:${hdrBg};${hdrBorder}">
+        <div class="gantt-drag-handle">⠿</div>
+        <div style="font-size:10px;color:var(--text2);width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .15s;transform:rotate(${isOpen?90:0}deg)" id="gtog-${t.id}" onclick="event.stopPropagation();toggleGanttGroupSplit(${t.id})">▶</div>
+        <div class="gantt-row-name${isDone?' done-text':''}" style="width:${colName-18}px;font-weight:700" onclick="openModal(${t.id})">📁 ${t.name}</div>
+        <div class="gantt-row-member" style="width:${colMember}px;color:var(--text3);font-size:9px">${t.start}〜${t.end}</div>
+      </div>`;
+    // バー側：グループヘッダー
+    barHTML+=`<div class="gantt-group-wrap${isDone?' grp-done':''}" id="gg-bar-${t.id}">
+      <div style="display:flex;align-items:center;background:${hdrBg};height:28px;${hdrBorder}overflow:hidden">
+        <div class="gantt-bar-area" style="width:${BAW}px;height:28px;overflow:hidden">${dayBgs}${todayLine}${gBar}</div>
+      </div>`;
+    if(isOpen){
+      fixedHTML+=`<div id="ggbody-${t.id}" style="padding-left:18px;border-left:3px solid rgba(42,92,170,.25)">`;
+      barHTML+=`<div id="ggbody-bar-${t.id}">`;
       children.forEach(c=>{
-        const {bar,rowH}=makeBar(c,colorIdx++,colName-18);
-        rowsHTML+=`<div class="gantt-row" data-id="${c.id}" data-parent="${t.id}" draggable="true" style="height:${rowH}px">
+        const {bar,rowH}=makeBar(c,colorIdx++,colName-22);
+        fixedHTML+=`<div class="gantt-row" data-id="${c.id}" data-parent="${t.id}" draggable="true" style="height:${rowH}px;display:flex;align-items:center">
           <div class="gantt-drag-handle">⠿</div>
-          <div class="gantt-row-name${c.done?' done-text':''}" style="width:${colName-18}px" onclick="openModal(${c.id})">${c.name}</div>
+          <div class="gantt-row-name${c.done?' done-text':''}" style="width:${colName-22}px" onclick="openModal(${c.id})">${c.name}</div>
           <div class="gantt-row-member" style="width:${colMember}px">${c.members||'—'}</div>
+        </div>`;
+        barHTML+=`<div style="height:${rowH}px;overflow:hidden">
           <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden">${dayBgs}${todayLine}${bar}</div>
         </div>`;
       });
-      rowsHTML+=`</div></div></div>`;
-    }else{
-      const {bar,rowH}=makeBar(t,colorIdx++,colName);
-      rowsHTML+=`<div class="gantt-row" data-id="${t.id}" draggable="true" style="height:${rowH}px">
-        <div class="gantt-drag-handle">⠿</div>
-        <div class="gantt-row-name${t.done?' done-text':''}" style="width:${colName}px" onclick="openModal(${t.id})">${t.name}</div>
-        <div class="gantt-row-member" style="width:${colMember}px">${t.members||'—'}</div>
-        <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden">${dayBgs}${todayLine}${bar}</div>
-      </div>`;
+      fixedHTML+=`</div>`;
+      barHTML+=`</div>`;
     }
+    fixedHTML+=`</div>`;
+    barHTML+=`</div>`;
+  }
+
+  // アクティブタスク
+  activeTops.forEach(t=>{
+    if(t.isGroup) addGroupRows(t,false);
+    else addTaskRow(t,null,true);
   });
 
-  // ── メンバー行（未完了・完了の間） ──────────────────
+  // メンバー行（未完了・完了の間）
   if(members.length>0){
-    rowsHTML+=`<div style="margin:4px 0 2px;display:flex;align-items:center;gap:6px">
-      <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,#6a9fd840,transparent)"></div>
-      <span style="font-size:9px;color:#6a9fd8;font-weight:700;letter-spacing:.05em;white-space:nowrap">👥 メンバー</span>
-      <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,#6a9fd840,transparent)"></div>
-    </div>`;
+    fixedHTML+=`<div style="height:16px;display:flex;align-items:center;padding-left:8px;background:rgba(106,159,216,.06);border-left:3px solid #6a9fd840">
+      <span style="font-size:9px;color:#6a9fd8;font-weight:700;letter-spacing:.04em">👥 メンバー</span></div>`;
+    barHTML+=`<div style="height:16px;position:relative;overflow:hidden;background:rgba(106,159,216,.06)">
+      ${dayBgs}<div style="position:absolute;inset:0;display:flex;align-items:center"><div style="width:100%;height:1px;background:linear-gradient(to right,#6a9fd860,#6a9fd8,#6a9fd860)"></div></div></div>`;
+
     members.forEach(m=>{
       if(!m.weeks)m.weeks={};
       const wkTasks=m.weeks[currentWeekKey]||'';
@@ -1460,115 +1497,81 @@ function renderGantt(){
       const mColor=getMemberColor(m);
       const mColorLight=getMemberColorLight(m);
       const mIcon=getMemberIcon(m);
-      // バー：火曜〜月曜
       const wkStart=new Date(currentWeekKey);
       const wkEnd=new Date(getWeekEnd(currentWeekKey));
       const sIdx=Math.max(0,Math.round((wkStart-minD)/86400000));
       const eIdx=Math.min(totalDays-1,Math.round((wkEnd-minD)/86400000));
       const bLeft=sIdx*DW;
       const bW=Math.max(DW,(eIdx-sIdx+1)*DW);
-      // テキスト行数に応じて高さを動的に計算
       const lines=hasTask?wkTasks.split('\n').filter(Boolean):[];
-      // バー内に収まるように最大行数計算（1行14px、上下padding 8px）
-      const maxLines=Math.min(lines.length,Math.max(2,Math.floor(bW/60)));// 横幅に応じて行数制限
+      const maxLines=Math.min(lines.length,Math.max(2,Math.floor(bW/55)));
       const visibleLines=lines.slice(0,maxLines);
-      const lineH=15;
-      const bH=Math.max(36,visibleLines.length*lineH+20);
+      const bH=Math.max(36,visibleLines.length*15+20);
       const rowH=bH+12;
-      const barOpacity=hasTask?0.92:0.3;
-      // バー内テキスト：折り返し対応
-      const barInnerHTML=hasTask
+      const barOpacity=hasTask?0.92:0.28;
+      const barInner=hasTask
         ?`<div style="position:absolute;inset:0;padding:5px 7px;overflow:hidden;display:flex;flex-direction:column;gap:1px">
-            ${visibleLines.map((ln,i)=>`<div style="font-size:10px;color:#fff;font-weight:${i===0?'600':'400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4">${escHtml2(ln)}</div>`).join('')}
+            ${visibleLines.map((ln,i)=>`<div style="font-size:10px;color:#fff;font-weight:${i===0?600:400};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4">${escHtml2(ln)}</div>`).join('')}
             ${lines.length>maxLines?`<div style="font-size:9px;color:rgba(255,255,255,.7)">…他${lines.length-maxLines}件</div>`:''}
           </div>`
-        :`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.8)">（未入力）</div>`;
-
+        :`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.7)">（未入力）</div>`;
       const ganttBar=`<div style="position:absolute;left:${bLeft}px;width:${bW}px;height:${bH}px;top:6px;background:${mColor};opacity:${barOpacity};border-radius:6px;cursor:pointer"
         onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')"
-        title="${escHtml2(m.name+': '+(wkTasks||'タスク未入力'))}">${barInnerHTML}</div>`;
+        title="${escHtml2(m.name+': '+(wkTasks||'タスク未入力'))}">${barInner}</div>`;
 
-      rowsHTML+=`<div class="gantt-member-wrap" id="gm-${m.id}" style="border-color:${mColor}80">
-        <div class="gantt-member-hdr" style="background:${mColorLight}">
-          <div class="gantt-drag-handle" style="cursor:default;color:${mColor}80">⠿</div>
-          <div style="font-size:16px;width:18px;text-align:center;flex-shrink:0">${mIcon}</div>
-          <div class="gantt-row-name" style="width:${colName-18}px;font-weight:700;color:${mColor}" onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')">${escHtml2(m.name)}</div>
-          <div class="gantt-row-member" style="width:${colMember}px;font-size:9px;color:var(--text3)">${getWeekLabel(currentWeekKey)}</div>
-          <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden;position:relative">
-            ${dayBgs}${todayLine}${ganttBar}
-            <div style="position:absolute;right:4px;top:4px;display:flex;gap:3px;z-index:5">
-              <button style="font-size:9px;padding:2px 5px;border-radius:4px;border:.5px solid ${mColor}60;background:rgba(255,255,255,.9);cursor:pointer;color:${mColor};font-weight:500"
-                onclick="event.stopPropagation();goGanttPastWeek(${m.id},'${currentWeekKey}')">◀ 過去週</button>
-              <button style="font-size:9px;padding:2px 5px;border-radius:4px;border:.5px solid ${mColor};background:${mColorLight};cursor:pointer;color:${mColor};font-weight:500"
-                onclick="event.stopPropagation();goGanttNextWeek(${m.id},'${currentWeekKey}')">次週へ ▶</button>
-            </div>
+      fixedHTML+=`<div style="height:${rowH}px;display:flex;align-items:center;background:${mColorLight};border-left:3px solid ${mColor}60">
+        <div style="width:22px;text-align:center;font-size:15px;flex-shrink:0">${mIcon}</div>
+        <div class="gantt-row-name" style="width:${colName-4}px;font-weight:700;color:${mColor};cursor:pointer" onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')">${escHtml2(m.name)}</div>
+        <div class="gantt-row-member" style="width:${colMember}px;font-size:9px;color:var(--text3)">${getWeekLabel(currentWeekKey)}</div>
+      </div>`;
+      barHTML+=`<div style="height:${rowH}px;background:${mColorLight};position:relative;overflow:hidden">
+        <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden;position:relative">
+          ${dayBgs}${todayLine}${ganttBar}
+          <div style="position:absolute;right:4px;top:4px;display:flex;gap:3px;z-index:5">
+            <button style="font-size:9px;padding:2px 5px;border-radius:4px;border:.5px solid ${mColor}60;background:rgba(255,255,255,.9);cursor:pointer;color:${mColor};font-weight:500"
+              onclick="event.stopPropagation();goGanttPastWeek(${m.id},'${currentWeekKey}')">◀ 過去週</button>
+            <button style="font-size:9px;padding:2px 5px;border-radius:4px;border:.5px solid ${mColor};background:${mColorLight};cursor:pointer;color:${mColor};font-weight:500"
+              onclick="event.stopPropagation();goGanttNextWeek(${m.id},'${currentWeekKey}')">次週へ ▶</button>
           </div>
         </div>
       </div>`;
     });
   }
 
-  // ── 完了済みタスク ────────────────────────────────
+  // 完了済みタスク
   doneTops.forEach(t=>{
-    if(t.isGroup){
-      const children=t.children.map(cid=>tasks.find(x=>x.id===cid)).filter(Boolean);
-      const isOpen=!collapsedGroups.has(t.id);
-      const grpDone=isTopDone(t);
-      const gs=new Date(t.start),ge=new Date(t.end);
-      const gSIdx=Math.max(0,Math.round((gs-minD)/86400000));
-      const gEIdx=Math.min(totalDays-1,Math.round((ge-minD)/86400000));
-      const gLeft=gSIdx*DW,gW=Math.max(DW,(gEIdx-gSIdx+1)*DW);
-      const gOOR=ge<minD||gs>maxD;
-      const gBar=gOOR?'':`<div style="position:absolute;left:${gLeft}px;width:${gW}px;height:6px;top:11px;background:#c0bfba;opacity:.5;border-radius:3px"></div>`;
-      rowsHTML+=`<div class="gantt-group-wrap grp-done" id="gg-${t.id}">
-        <div class="gantt-group-hdr" data-gid="${t.id}" draggable="true">
-          <div class="gantt-drag-handle">⠿</div>
-          <div style="font-size:10px;color:var(--text2);width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .15s;transform:rotate(${isOpen?90:0}deg)" id="gtog-${t.id}" onclick="event.stopPropagation();toggleGanttGroup(${t.id})">▶</div>
-          <div class="gantt-row-name done-text" style="width:${colName-18}px;font-weight:700" onclick="openModal(${t.id})">📁 ${t.name}</div>
-          <div class="gantt-row-member" style="width:${colMember}px;color:var(--text3)">${t.start}〜${t.end}</div>
-          <div class="gantt-bar-area" style="width:${BAW}px;height:28px;overflow:hidden">${dayBgs}${todayLine}${gBar}</div>
-        </div>
-        <div id="ggbody-${t.id}" style="display:${isOpen?'block':'none'}">
-          <div class="gantt-group-body">`;
-      children.forEach(c=>{
-        const {bar,rowH}=makeBar(c,colorIdx++,colName-18);
-        rowsHTML+=`<div class="gantt-row" data-id="${c.id}" data-parent="${t.id}" draggable="true" style="height:${rowH}px">
-          <div class="gantt-drag-handle">⠿</div>
-          <div class="gantt-row-name${c.done?' done-text':''}" style="width:${colName-18}px" onclick="openModal(${c.id})">${c.name}</div>
-          <div class="gantt-row-member" style="width:${colMember}px">${c.members||'—'}</div>
-          <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden">${dayBgs}${todayLine}${bar}</div>
-        </div>`;
-      });
-      rowsHTML+=`</div></div></div>`;
-    }else{
-      const {bar,rowH}=makeBar(t,colorIdx++,colName);
-      rowsHTML+=`<div class="gantt-row" data-id="${t.id}" draggable="true" style="height:${rowH}px">
-        <div class="gantt-drag-handle">⠿</div>
-        <div class="gantt-row-name${t.done?' done-text':''}" style="width:${colName}px" onclick="openModal(${t.id})">${t.name}</div>
-        <div class="gantt-row-member" style="width:${colMember}px">${t.members||'—'}</div>
-        <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden">${dayBgs}${todayLine}${bar}</div>
-      </div>`;
-    }
+    if(t.isGroup) addGroupRows(t,true);
+    else addTaskRow(t,null,true);
   });
 
-  // ガント全体の幅
-  const totalW=22+colName+colMember+BAW;
+  // ── HTML出力 ─────────────────────────────────────────
+  const fixedW=22+colName+colMember;
 
   root.innerHTML=`
+    <!-- 最上部スクロールバー -->
     <div class="gantt-scroll-top" id="gantt-scroll-top">
-      <div class="gantt-scroll-top-inner" style="width:${totalW}px"></div>
+      <div class="gantt-scroll-top-inner" style="width:${BAW}px"></div>
     </div>
-    <div class="gantt-scroll-main" id="gantt-scroll-main">
-      <div style="min-width:${totalW}px">
-        <div style="display:flex;align-items:flex-end;margin-bottom:2px">
-          <div style="width:22px;flex-shrink:0"></div>
-          <div class="gantt-name-col-h" style="width:${colName}px">タスク名<div class="resize-handle" id="rh-name">⋮</div></div>
-          <div class="gantt-member-col-h" style="width:${colMember}px">関係者<div class="resize-handle" id="rh-member">⋮</div></div>
-          <div style="flex:none;width:${BAW}px;padding:0 0 4px">
-            <div class="day-label-row" style="width:${BAW}px;position:relative">${dayLabels}</div>
-          </div>
+    <!-- ヘッダー行 -->
+    <div style="display:flex;flex-shrink:0;border-bottom:.5px solid var(--border);background:var(--surface2)">
+      <div style="width:${fixedW}px;flex-shrink:0;display:flex;align-items:center;border-right:1.5px solid var(--border2);padding:2px 0">
+        <div style="width:22px;flex-shrink:0"></div>
+        <div class="gantt-name-col-h" style="width:${colName}px;padding-left:4px">タスク名<div class="resize-handle" id="rh-name">⋮</div></div>
+        <div class="gantt-member-col-h" style="width:${colMember}px">関係者<div class="resize-handle" id="rh-member">⋮</div></div>
+      </div>
+      <div style="overflow:hidden;flex:1" id="gantt-header-clip">
+        <div style="width:${BAW}px">
+          <div class="day-label-row" style="width:${BAW}px;position:relative;height:30px">${dayLabels}</div>
         </div>
-        <div id="gantt-rows">${rowsHTML}</div>
+      </div>
+    </div>
+    <!-- ボディ（左固定＋右スクロール） -->
+    <div style="display:flex;flex:1;min-height:0;overflow:hidden">
+      <div style="width:${fixedW}px;flex-shrink:0;overflow:hidden;border-right:1.5px solid var(--border2);background:var(--surface)" id="gantt-fixed-col">
+        <div id="gantt-fixed-rows" style="overflow:hidden">${fixedHTML}</div>
+      </div>
+      <div class="gantt-scroll-main" id="gantt-scroll-main">
+        <div id="gantt-bar-rows" style="width:${BAW}px">${barHTML}</div>
       </div>
     </div>
     <div style="margin-top:8px;font-size:10px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;flex-shrink:0">
@@ -1582,16 +1585,30 @@ function renderGantt(){
       <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:28px;background:#6a9fd8;border-radius:4px;opacity:.7"></span>👤 メンバー</span>
     </div>`;
 
-  // 上部スクロールバーとメインを同期
+  // スクロール同期：上部バー ↔ ヘッダー ↔ メイン（横）、固定列とメイン（縦）
   const topBar=document.getElementById('gantt-scroll-top');
   const mainArea=document.getElementById('gantt-scroll-main');
+  const headerClip=document.getElementById('gantt-header-clip');
+  const fixedRows=document.getElementById('gantt-fixed-rows');
   if(topBar&&mainArea){
     let syncing=false;
-    topBar.addEventListener('scroll',()=>{if(syncing)return;syncing=true;mainArea.scrollLeft=topBar.scrollLeft;syncing=false;});
-    mainArea.addEventListener('scroll',()=>{if(syncing)return;syncing=true;topBar.scrollLeft=mainArea.scrollLeft;syncing=false;});
+    topBar.addEventListener('scroll',()=>{
+      if(syncing)return;syncing=true;
+      mainArea.scrollLeft=topBar.scrollLeft;
+      if(headerClip)headerClip.scrollLeft=topBar.scrollLeft;
+      syncing=false;
+    });
+    mainArea.addEventListener('scroll',()=>{
+      if(syncing)return;syncing=true;
+      topBar.scrollLeft=mainArea.scrollLeft;
+      if(headerClip)headerClip.scrollLeft=mainArea.scrollLeft;
+      if(fixedRows)fixedRows.scrollTop=mainArea.scrollTop;
+      syncing=false;
+    });
     const scrollTo=Math.max(0,todayLeft-(availW*0.25));
     mainArea.scrollLeft=scrollTo;
     topBar.scrollLeft=scrollTo;
+    if(headerClip)headerClip.scrollLeft=scrollTo;
   }
 
   initGanttDrag();initResizeHandles();
@@ -1616,10 +1633,10 @@ function isTopDone(t){
 
 function toggleGanttGroup(id){
   if(collapsedGroups.has(id))collapsedGroups.delete(id);else collapsedGroups.add(id);
-  const body=document.getElementById('ggbody-'+id);
-  const tog=document.getElementById('gtog-'+id);
-  if(body)body.style.display=collapsedGroups.has(id)?'none':'block';
-  if(tog)tog.style.transform=`rotate(${collapsedGroups.has(id)?0:90}deg)`;
+  renderGantt();// 分離方式のため再描画
+}
+function toggleGanttGroupSplit(id){
+  toggleGanttGroup(id);
 }
 
 function initGanttDrag(){
@@ -1722,45 +1739,86 @@ function renderCalendar(){
   const dim=new Date(calYear,calMonth+1,0).getDate();
   const td=todayStr();
   const showDone=document.getElementById('cal-show-done')?.checked||false;
-  const taskMap={};
+
+  // カレンダー表示範囲（前後の月まで含むセル全体）
+  const cellStart=new Date(calYear,calMonth,1-firstDay);
+  const totalCells=firstDay+dim;
+  const trailingCells=(7-(totalCells%7))%7;
+  const cellEnd=new Date(calYear,calMonth+1,trailingCells||0);
+  cellEnd.setHours(23,59,59);
+  const cellStartStr=dStr(cellStart);
+  const cellEndStr=dStr(cellEnd);
+
+  // 各タスクをカラーインデックス付きでリスト化
+  const taskList=[];
   tasks.filter(t=>!t.isGroup&&(showDone||!t.done)).forEach((t,i)=>{
-    const ds=t.end;
-    if(!taskMap[ds])taskMap[ds]=[];
-    taskMap[ds].push({t,i});
+    // 表示範囲とタスク期間が重なるものだけ
+    if(t.end>=cellStartStr&&t.start<=cellEndStr){
+      taskList.push({t,colorIdx:i});
+    }
   });
-  Object.keys(taskMap).forEach(ds=>{
-    taskMap[ds].sort((a,b)=>a.t.end.localeCompare(b.t.end));
+  // 期間が長いタスクを上位に（ガント風レイアウト）
+  taskList.sort((a,b)=>{
+    const dA=(new Date(a.t.end)-new Date(a.t.start));
+    const dB=(new Date(b.t.end)-new Date(b.t.start));
+    return dB-dA||a.t.start.localeCompare(b.t.start);
   });
+
+  // 各日付にそのタスクを配置する map（ds -> [{t,colorIdx,isStart,isEnd,isMid}]）
+  const dayMap={};
+  taskList.forEach(({t,colorIdx})=>{
+    const s=new Date(t.start),e=new Date(t.end);
+    const cur=new Date(Math.max(s.getTime(),cellStart.getTime()));
+    const fin=new Date(Math.min(e.getTime(),cellEnd.getTime()));
+    while(cur<=fin){
+      const ds=dStr(cur);
+      if(!dayMap[ds])dayMap[ds]=[];
+      const isStart=ds===t.start||cur.getTime()===cellStart.getTime();
+      const isEnd=ds===t.end;
+      dayMap[ds].push({t,colorIdx,isStart,isEnd});
+      cur.setDate(cur.getDate()+1);
+    }
+  });
+
+  // セルHTML生成
+  function makeCell(d,cls){
+    const ds=dStr(d);
+    const hn=HOL_NAMES[ds]||'';
+    const dow=d.getDay();
+    let h=`<div class="cal-date-num">${d.getDate()}</div>`;
+    if(hn)h+=`<div class="cal-hol-label">${hn}</div>`;
+    (dayMap[ds]||[]).forEach(({t,colorIdx,isStart,isEnd})=>{
+      const color=t.done?'#c0bfba':BAR_COLORS[colorIdx%BAR_COLORS.length];
+      // バーのスタイル：開始/終了/中間で丸め方を変える
+      const br=isStart&&isEnd?'4px':isStart?'4px 0 0 4px':isEnd?'0 4px 4px 0':'0';
+      const label=isStart?`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${isEnd?'★':''} ${t.name}</span>`
+                         :(isEnd?`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">…★</span>`:'');
+      const mx=isStart?'0':'';const ml=isStart?'0':'-2px';const mr=isEnd?'0':'-2px';
+      h+=`<div class="cal-task-chip" style="background:${color};border-radius:${br};margin-left:${ml};margin-right:${mr};padding-left:${isStart?'5px':'2px'};padding-right:${isEnd?'5px':'2px'}"
+        onclick="event.stopPropagation();openModal(${t.id})" title="${t.name} (${t.start}〜${t.end})">${label}</div>`;
+    });
+    return h;
+  }
+
   let html=`<div class="cal-grid">`;
   DAY.forEach((n,i)=>{html+=`<div class="cal-day-header${i===0?' sun':i===6?' sat':''}">${n}</div>`;});
   for(let i=0;i<firstDay;i++){
     const d=new Date(calYear,calMonth,1-firstDay+i);
-    html+=`<div class="cal-cell other-month" onclick="calAddTask('${dStr(d)}')">${calCell(d,dStr(d),taskMap,td)}</div>`;
+    html+=`<div class="cal-cell other-month" onclick="calAddTask('${dStr(d)}')">${makeCell(d,'other-month')}</div>`;
   }
   for(let day=1;day<=dim;day++){
     const d=new Date(calYear,calMonth,day),ds=dStr(d),dow=d.getDay();
     let cls='cal-cell';
     if(ds===td)cls+=' today-cell';else if(dow===6)cls+=' sat-cell';else if(dow===0||isHoliday(ds))cls+=isHoliday(ds)?' hol-cell':' sun-cell';
-    html+=`<div class="${cls}" onclick="calAddTask('${ds}')">${calCell(d,ds,taskMap,td)}</div>`;
+    html+=`<div class="${cls}" onclick="calAddTask('${ds}')">${makeCell(d,cls)}</div>`;
   }
-  const tr=(7-(firstDay+dim)%7)%7;
+  const tr=(7-(totalCells%7))%7;
   for(let i=1;i<=tr;i++){
     const d=new Date(calYear,calMonth+1,i);
-    html+=`<div class="cal-cell other-month" onclick="calAddTask('${dStr(d)}')">${calCell(d,dStr(d),taskMap,td)}</div>`;
+    html+=`<div class="cal-cell other-month" onclick="calAddTask('${dStr(d)}')">${makeCell(d,'other-month')}</div>`;
   }
   html+=`</div>`;
   document.getElementById('cal-root').innerHTML=html;
-}
-function calCell(d,ds,taskMap,td){
-  const hn=HOL_NAMES[ds]||'';
-  let h=`<div class="cal-date-num">${d.getDate()}</div>`;
-  if(hn)h+=`<div class="cal-hol-label">${hn}</div>`;
-  (taskMap[ds]||[]).forEach(({t,i})=>{
-    const color=BAR_COLORS[i%BAR_COLORS.length];
-    const isDue=ds===t.end;
-    h+=`<div class="cal-task-chip" style="background:${t.done?'#c0bfba':color}" onclick="event.stopPropagation();openModal(${t.id})" title="${t.name}">${isDue?'★':''} ${t.name}</div>`;
-  });
-  return h;
 }
 function calAddTask(ds){
   openModal();
@@ -1790,13 +1848,13 @@ async function deleteMemo(id){
 }
 async function memoToTask(id){
   const m=memos.find(m=>m.id===id);if(!m)return;
+  // メモは消さずにモーダルを開く。保存成功時にのみ削除する
+  pendingMemoToTaskId=id;
   openModal();
   setTimeout(()=>{
     document.getElementById('f-name').value=m.text.split('\n')[0].slice(0,50);
     document.getElementById('f-memo').value=m.text;
   },50);
-  memos=memos.filter(m=>m.id!==id);
-  await save();renderMemos();
 }
 function renderMemos(){
   const active=memos.filter(m=>!m.done);
@@ -1860,6 +1918,7 @@ window.confirmDelete=confirmDelete;
 window.closeConfirm=closeConfirm;
 window.toggleGroup=toggleGroup;
 window.toggleGanttGroup=toggleGanttGroup;
+window.toggleGanttGroupSplit=toggleGanttGroupSplit;
 window.toggleDoneSection=toggleDoneSection;
 window.switchTab=switchTab;
 window.onGroupToggle=onGroupToggle;
