@@ -1567,8 +1567,8 @@ function renderGantt(){
     </div>
     <!-- ボディ（左固定＋右スクロール） -->
     <div style="display:flex;flex:1;min-height:0;overflow:hidden">
-      <div style="width:${fixedW}px;flex-shrink:0;overflow:hidden;border-right:1.5px solid var(--border2);background:var(--surface)" id="gantt-fixed-col">
-        <div id="gantt-fixed-rows" style="overflow:hidden">${fixedHTML}</div>
+      <div style="width:${fixedW}px;flex-shrink:0;overflow:hidden;border-right:1.5px solid var(--border2);background:var(--surface);display:flex;flex-direction:column;" id="gantt-fixed-col">id="gantt-fixed-col">
+        <div id="gantt-fixed-rows" style="overflow:hidden;max-height:100%">${fixedHTML}</div>
       </div>
       <div class="gantt-scroll-main" id="gantt-scroll-main">
         <div id="gantt-bar-rows" style="width:${BAW}px">${barHTML}</div>
@@ -1602,7 +1602,6 @@ function renderGantt(){
       if(syncing)return;syncing=true;
       topBar.scrollLeft=mainArea.scrollLeft;
       if(headerClip)headerClip.scrollLeft=mainArea.scrollLeft;
-      if(fixedRows)fixedRows.scrollTop=mainArea.scrollTop;
       syncing=false;
     });
     const scrollTo=Math.max(0,todayLeft-(availW*0.25));
