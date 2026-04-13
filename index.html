@@ -1404,7 +1404,9 @@ function renderGantt(){
     const bOp=t.done?.6:1;
     const bar=outOfRange
       ?`<div style="position:absolute;left:4px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3)">← 表示範囲外</div>`
-      :`<div class="gantt-bar" style="left:${bLeft}px;width:${bW}px;height:${bH}px;top:${bTop}px;background:${bColor};opacity:${bOp};border-radius:${bH<=16?3:5}px" onclick="openModal(${t.id})" title="${t.name}">${t.name}</div>`;
+      :`<div class="gantt-bar" style="left:${bLeft}px;width:${bW}px;height:${bH}px;top:${bTop}px;background:${bColor};opacity:${bOp};border-radius:${bH<=16?3:5}px;overflow:visible" onclick="openModal(${t.id})" title="${t.name}">
+          <div style="position:sticky;left:4px;max-width:${bW-8}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none">${t.name}</div>
+        </div>`;
     return {bar,rowH};
   }
 
@@ -1603,6 +1605,10 @@ function renderGantt(){
       topBar.scrollLeft=mainArea.scrollLeft;
       if(headerClip)headerClip.scrollLeft=mainArea.scrollLeft;
       syncing=false;
+      if(fixedRows)fixedRows.scrollTop=mainArea.scrollTop;
+    });
+    if(fixedRows)fixedRows.addEventListener('scroll',()=>{
+      mainArea.scrollTop=fixedRows.scrollTop;
       if(fixedRows)fixedRows.scrollTop=mainArea.scrollTop;
     });
     const scrollTo=Math.max(0,todayLeft-(availW*0.25));
