@@ -141,7 +141,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .member-reg-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
 .member-reg-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .member-reg-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:var(--radius);border:.5px solid var(--border)}
-.member-reg-icon-preview{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.member-reg-icon-preview{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;cursor:pointer;transition:transform .15s}
+.member-reg-icon-preview:hover{transform:scale(1.1)}
 .member-reg-name{flex:1;font-size:13px;font-weight:500}
 .member-reg-add{display:flex;flex-direction:column;gap:8px}
 .member-reg-add input{width:100%;padding:8px 12px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;transition:border-color .15s}
@@ -1278,19 +1279,37 @@ function toggleMemberBlock(id){
 }
 
 // ── メンバータブ描画 ──────────────────────────────────
+let editingMemberId=null;
+
 function renderMemberTab(){
   const list=document.getElementById('member-reg-list');
   const addArea=document.getElementById('member-reg-add');
   if(!list)return;
   if(members.length){
     list.innerHTML=members.map((m,i)=>`
-      <div class="member-reg-item" style="border-left:3px solid ${getMemberColor(m)}">
-        <div class="member-reg-icon-preview" style="background:${getMemberColorLight(m)}">${getMemberIcon(m)}</div>
-        <div class="member-reg-name" style="color:${getMemberColor(m)}">${escHtml2(m.name)}</div>
-        <div style="display:flex;gap:2px;flex-shrink:0">
-          <button class="icon-btn" onclick="moveMemberUp(${m.id})" title="上へ" ${i===0?'disabled style="opacity:.3"':''}>↑</button>
-          <button class="icon-btn" onclick="moveMemberDown(${m.id})" title="下へ" ${i===members.length-1?'disabled style="opacity:.3"':''}>↓</button>
-          <button class="icon-btn del" onclick="deleteMember(${m.id})" title="削除">🗑</button>
+      <div class="member-reg-item" style="border-left:3px solid ${getMemberColor(m)};flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px">
+          <div class="member-reg-icon-preview" style="background:${getMemberColorLight(m)}" onclick="startEditMemberAppearance(${m.id})" title="クリックして編集">${getMemberIcon(m)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="member-reg-name" style="color:${getMemberColor(m)}">${escHtml2(m.name)}</div>
+            <div style="font-size:10px;color:var(--text3)">クリックして色・アイコンを変更</div>
+          </div>
+          <div style="display:flex;gap:2px;flex-shrink:0">
+            <button class="icon-btn" onclick="moveMemberUp(${m.id})" title="上へ" ${i===0?'disabled style="opacity:.3"':''}>↑</button>
+            <button class="icon-btn" onclick="moveMemberDown(${m.id})" title="下へ" ${i===members.length-1?'disabled style="opacity:.3"':''}>↓</button>
+            <button class="icon-btn del" onclick="deleteMember(${m.id})" title="削除">🗑</button>
+          </div>
+        </div>
+        <div id="member-edit-panel-${m.id}" style="display:none;padding:10px 12px;background:var(--bg);border-top:.5px solid var(--border);flex-direction:column;gap:8px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2)">🎨 カラー</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap" id="edit-color-swatches-${m.id}">
+            ${MEMBER_COLORS.map(c=>`<div class="color-swatch${(m.colorId||'blue')===c.id?' selected':''}" style="background:${c.hex}" onclick="applyMemberColor(${m.id},'${c.id}')" title="${c.id}"></div>`).join('')}
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2)">🖼 アイコン</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap" id="edit-icon-swatches-${m.id}">
+            ${MEMBER_ICONS.map(ic=>`<div class="icon-swatch${getMemberIcon(m)===ic?' selected':''}" onclick="applyMemberIcon(${m.id},'${ic}')">${ic}</div>`).join('')}
+          </div>
+          <button style="font-size:11px;padding:4px 12px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--surface);cursor:pointer;align-self:flex-start" onclick="closeEditMemberPanel(${m.id})">✓ 完了</button>
         </div>
       </div>`).join('');
   }else{
@@ -1302,8 +1321,42 @@ function renderMemberTab(){
     if(inp){inp.disabled=!canAdd;inp.placeholder=canAdd?'メンバーの名前を入力...':'最大5人まで登録済み';inp.style.opacity=canAdd?'1':'.5';}
     addArea.style.display=canAdd?'flex':'none';
   }
+  // 編集中パネルを復元
+  if(editingMemberId!==null){
+    const panel=document.getElementById(`member-edit-panel-${editingMemberId}`);
+    if(panel)panel.style.display='flex';
+  }
   initMemberPickers();
   updateMemberTaskBtn();
+}
+
+function startEditMemberAppearance(id){
+  // 他のパネルを閉じる
+  members.forEach(m=>{
+    const p=document.getElementById(`member-edit-panel-${m.id}`);
+    if(p)p.style.display='none';
+  });
+  editingMemberId=(editingMemberId===id)?null:id;
+  if(editingMemberId!==null){
+    const panel=document.getElementById(`member-edit-panel-${id}`);
+    if(panel)panel.style.display='flex';
+  }
+}
+function closeEditMemberPanel(id){
+  editingMemberId=null;
+  const panel=document.getElementById(`member-edit-panel-${id}`);
+  if(panel)panel.style.display='none';
+}
+async function applyMemberColor(id,colorId){
+  const m=members.find(m=>m.id===id);if(!m)return;
+  const c=MEMBER_COLORS.find(c=>c.id===colorId);if(!c)return;
+  m.color=c.hex;m.colorLight=c.light;m.colorId=c.id;
+  await save();renderMemberTab();render();
+}
+async function applyMemberIcon(id,icon){
+  const m=members.find(m=>m.id===id);if(!m)return;
+  m.icon=icon;
+  await save();renderMemberTab();render();
 }
 
 function updateMemberTaskBtn(){
@@ -1942,6 +1995,10 @@ window.addMember=addMember;
 window.deleteMember=deleteMember;
 window.moveMemberUp=moveMemberUp;
 window.moveMemberDown=moveMemberDown;
+window.startEditMemberAppearance=startEditMemberAppearance;
+window.closeEditMemberPanel=closeEditMemberPanel;
+window.applyMemberColor=applyMemberColor;
+window.applyMemberIcon=applyMemberIcon;
 window.selectMemberColor=selectMemberColor;
 window.selectMemberIcon=selectMemberIcon;
 window.updateMemberPreview=updateMemberPreview;
