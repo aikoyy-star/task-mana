@@ -1587,51 +1587,69 @@ function renderGantt(){
 
     members.forEach(m=>{
       if(!m.weeks)m.weeks={};
-      const wkTasks=m.weeks[currentWeekKey]||'';
-      const hasTask=wkTasks.trim().length>0;
       const mColor=getMemberColor(m);
       const mColorLight=getMemberColorLight(m);
       const mIcon=getMemberIcon(m);
-      const wkStart=new Date(currentWeekKey);
-      const wkEnd=new Date(getWeekEnd(currentWeekKey));
-      const sIdx=Math.max(0,Math.round((wkStart-minD)/86400000));
-      const eIdx=Math.min(totalDays-1,Math.round((wkEnd-minD)/86400000));
-      const bLeft=sIdx*DW;
-      const bW=Math.max(DW,(eIdx-sIdx+1)*DW);
-      const lines=hasTask?wkTasks.split('\n').filter(Boolean):[];
-      const maxLines=Math.min(lines.length,Math.max(2,Math.floor(bW/55)));
-      const visibleLines=lines.slice(0,maxLines);
-      const bH=Math.max(36,visibleLines.length*15+20);
-      const rowH=bH+12;
-      const barOpacity=hasTask?0.92:0.28;
-      const barInner=hasTask
-        ?`<div style="position:absolute;inset:0;padding:5px 7px;overflow:hidden;display:flex;flex-direction:column;gap:1px">
+
+      // 表示対象の全週キーを収集（minD〜maxDの範囲にある火曜日）
+      const allWeekKeys=[];
+      const cur=new Date(minD);
+      while(cur<=maxD){
+        if(cur.getDay()===2){allWeekKeys.push(dStr(cur));}
+        cur.setDate(cur.getDate()+1);
+      }
+
+      // 各週の帯を生成
+      let memberBars='';
+      let maxRowH=36;
+      allWeekKeys.forEach(wk=>{
+        const wkTasks=m.weeks[wk]||'';
+        const hasTask=wkTasks.trim().length>0;
+        if(!hasTask)return;
+        const isCurrentWk=wk===currentWeekKey;
+        const isPast=wk<currentWeekKey;
+        const wkStart=new Date(wk);
+        const wkEnd=new Date(getWeekEnd(wk));
+        const sIdx=Math.max(0,Math.round((wkStart-minD)/86400000));
+        const eIdx=Math.min(totalDays-1,Math.round((wkEnd-minD)/86400000));
+        const bLeft=sIdx*DW;
+        const bW=Math.max(DW,(eIdx-sIdx+1)*DW-2); // -2で週間の隙間
+        const lines=wkTasks.split('\n').filter(Boolean);
+        const maxLines=Math.min(lines.length,Math.max(2,Math.floor(bW/55)));
+        const visibleLines=lines.slice(0,maxLines);
+        const bH=Math.max(36,visibleLines.length*15+20);
+        if(bH+12>maxRowH)maxRowH=bH+12;
+        const barOpacity=isCurrentWk?0.92:isPast?0.38:0.65;
+        memberBars+=`<div style="position:absolute;left:${bLeft}px;width:${bW}px;height:${bH}px;top:6px;background:${mColor};opacity:${barOpacity};border-radius:6px;cursor:pointer;box-sizing:border-box;"
+          onclick="openGanttMemberModal(${m.id},'${wk}')"
+          title="${escHtml2(m.name+' ('+wk+'〜): '+(wkTasks||'タスク未入力'))}">
+          <div style="position:absolute;inset:0;padding:5px 7px;overflow:hidden;display:flex;flex-direction:column;gap:1px">
             ${visibleLines.map((ln,i)=>`<div style="font-size:10px;color:#fff;font-weight:${i===0?600:400};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4">${escHtml2(ln)}</div>`).join('')}
             ${lines.length>maxLines?`<div style="font-size:9px;color:rgba(255,255,255,.7)">…他${lines.length-maxLines}件</div>`:''}
-          </div>`
-        :`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.7)">（未入力）</div>`;
-      const ganttBar=`<div style="position:absolute;left:${bLeft}px;width:${bW}px;height:${bH}px;top:6px;background:${mColor};opacity:${barOpacity};border-radius:6px;cursor:pointer"
-        onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')"
-        title="${escHtml2(m.name+': '+(wkTasks||'タスク未入力'))}">${barInner}</div>`;
+          </div>
+        </div>`;
+      });
 
+      // 週区切り線（火曜日ごとに縦線）
+      let weekDividers='';
+      allWeekKeys.forEach(wk=>{
+        const sIdx=Math.round((new Date(wk)-minD)/86400000);
+        const left=sIdx*DW;
+        weekDividers+=`<div style="position:absolute;left:${left}px;top:0;bottom:0;width:1px;background:rgba(106,159,216,0.35);pointer-events:none"></div>`;
+      });
+
+      const rowH=maxRowH;
       fixedHTML+=`<div style="height:${rowH}px;display:flex;align-items:center;background:${mColorLight};border-left:3px solid ${mColor}60">
         <div style="width:22px;text-align:center;font-size:15px;flex-shrink:0">${mIcon}</div>
         <div class="gantt-row-name" style="width:${colName-4}px;font-weight:700;color:${mColor};cursor:pointer" onclick="openGanttMemberModal(${m.id},'${currentWeekKey}')">${escHtml2(m.name)}</div>
-        <div class="gantt-row-member" style="width:${colMember}px;font-size:9px;color:var(--text3)">${getWeekLabel(currentWeekKey)}</div>
+        <div class="gantt-row-member" style="width:${colMember}px;font-size:9px;color:var(--text3)">今週</div>
       </div>`;
       barHTML+=`<div style="height:${rowH}px;background:${mColorLight};position:relative;overflow:hidden">
         <div class="gantt-bar-area" style="width:${BAW}px;height:${rowH}px;overflow:hidden;position:relative">
-          ${dayBgs}${todayLine}${ganttBar}
-          <div style="position:absolute;right:4px;top:4px;display:flex;gap:3px;z-index:5">
-            <button style="font-size:9px;padding:2px 5px;border-radius:4px;border:.5px solid ${mColor}60;background:rgba(255,255,255,.9);cursor:pointer;color:${mColor};font-weight:500"
-              onclick="event.stopPropagation();goGanttPastWeek(${m.id},'${currentWeekKey}')">◀ 過去週</button>
-            <button style="font-size:9px;padding:2px 5px;border-radius:4px;border:.5px solid ${mColor};background:${mColorLight};cursor:pointer;color:${mColor};font-weight:500"
-              onclick="event.stopPropagation();goGanttNextWeek(${m.id},'${currentWeekKey}')">次週へ ▶</button>
-          </div>
+          ${dayBgs}${todayLine}${weekDividers}${memberBars}
         </div>
       </div>`;
     });
-  }
 
   // 完了済みタスク
   doneTops.forEach(t=>{
