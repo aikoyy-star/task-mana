@@ -1463,6 +1463,10 @@ function renderGantt(){
   const todayLeft=todayIdx*DW+DW/2;
 
   let dayBgs='',dayLabels='';
+  const todayD=new Date(td);
+  const weekSun=new Date(todayD);weekSun.setDate(todayD.getDate()-todayD.getDay());
+  const weekSat=new Date(weekSun);weekSat.setDate(weekSun.getDate()+6);
+  const weekSunStr=dStr(weekSun),weekSatStr=dStr(weekSat);
   // 今週（日曜〜土曜）の範囲を計算
   const todayD=new Date(td);
   const weekSun=new Date(todayD);weekSun.setDate(todayD.getDate()-todayD.getDay());
@@ -1478,7 +1482,9 @@ function renderGantt(){
     const lbl=isFirst?`${d.getMonth()+1}/${d.getDate()}`:String(d.getDate());
     let lblCls='day-label-text';
     if(ds===td)lblCls+=' today-lbl';else if(dow===6)lblCls+=' sat';else if(dow===0||isHoliday(ds))lblCls+=' sun';
-    dayLabels+=`<div class="day-label" style="left:${left}px;width:${DW}px"><div class="${lblCls}">${lbl}</div></div>`;
+    const isThisWeek=ds>=weekSunStr&&ds<=weekSatStr;
+    const weekBg=isThisWeek?'background:rgba(188,250,114,0.13);':'';
+    dayLabels+=`<div class="day-label" style="left:${left}px;width:${DW}px;${weekBg}"><div class="${lblCls}">${lbl}</div></div>`;
   }
   const todayLine=`<div class="today-vline" style="left:${todayLeft}px"><div class="today-label">今日</div></div>`;
 
