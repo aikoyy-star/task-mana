@@ -208,6 +208,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .today-label{position:absolute;top:-18px;font-size:9px;color:var(--red);font-weight:700;transform:translateX(-50%);font-family:'DM Mono',monospace;white-space:nowrap}
 .day-col{position:absolute;top:0;bottom:0;pointer-events:none}
 .day-col.sat{background:var(--sat-bg)}.day-col.sun{background:var(--sun-bg)}
+.day-col.this-week{background:rgba(42,92,170,0.08);border-top:2px solid rgba(42,92,170,0.35);border-bottom:2px solid rgba(42,92,170,0.35);}
 .day-label-row{position:relative;height:30px;border-bottom:.5px solid var(--border)}
 .day-label{position:absolute;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:3px}
 .day-label-text{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;white-space:nowrap}
@@ -1462,10 +1463,16 @@ function renderGantt(){
   const todayLeft=todayIdx*DW+DW/2;
 
   let dayBgs='',dayLabels='';
+  // 今週（日曜〜土曜）の範囲を計算
+  const todayD=new Date(td);
+  const weekSun=new Date(todayD);weekSun.setDate(todayD.getDate()-todayD.getDay());
+  const weekSat=new Date(weekSun);weekSat.setDate(weekSun.getDate()+6);
+  const weekSunStr=dStr(weekSun),weekSatStr=dStr(weekSat);
   for(let i=0;i<totalDays;i++){
     const d=new Date(minD.getTime()+i*86400000);
     const ds=dStr(d);const left=i*DW;const dow=d.getDay();
     let cls='';if(dow===6)cls='sat';else if(dow===0||isHoliday(ds))cls='sun';
+     if(ds>=weekSunStr&&ds<=weekSatStr)cls=(cls?cls+' ':'')+'this-week';
     dayBgs+=`<div class="day-col${cls?' '+cls:''}" style="left:${left}px;width:${DW}px;top:0;bottom:0"></div>`;
     const isFirst=i===0||d.getDate()===1;
     const lbl=isFirst?`${d.getMonth()+1}/${d.getDate()}`:String(d.getDate());
